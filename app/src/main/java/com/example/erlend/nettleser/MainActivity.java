@@ -13,11 +13,24 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
     private static final String TAG = "Stringtest";
     private WebView mWebView;
+
+    public void clickedButton(View view) {
+        WebView webView = (WebView)findViewById(R.id.webview);
+        TextView textView = (TextView)findViewById(R.id.website_text);
+        webView.setWebViewClient(new WebViewClient());
+        webView.loadUrl(textView.getText().toString());
+        webView.getSettings().setJavaScriptEnabled(true);
+        webView.getSettings().setBuiltInZoomControls(true);
+        webView.setVerticalScrollBarEnabled(true);
+        webView.setHorizontalScrollBarEnabled(false);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -27,6 +40,9 @@ public class MainActivity extends Activity {
         Log.i(TAG, "onCreate");
         mWebView = (WebView) findViewById(R.id.webview);
         mWebView.getSettings().setJavaScriptEnabled(true); //XSS issues must be resolved, eventually...
+        mWebView.getSettings().setBuiltInZoomControls(true);
+        mWebView.setVerticalScrollBarEnabled(true);
+        mWebView.setHorizontalScrollBarEnabled(false);
         mWebView.setWebViewClient(new ThisWebViewClient());
 
         /**
