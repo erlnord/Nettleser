@@ -17,6 +17,7 @@ import android.webkit.WebViewClient;
 public class MainActivity extends Activity {
     /**
      * Next tutorial: https://www.youtube.com/watch?v=FCb3ds-ir8o&annotation_id=annotation_821341&src_vid=Uc9-JrEy8vw&feature=iv
+     * TESTINGTESTINGTESTING
      */
     private static final String TAG = "Stringtest";
     private WebView mWebView;
