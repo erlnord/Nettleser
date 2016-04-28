@@ -15,21 +15,29 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 public class MainActivity extends Activity {
-    /**
-     * Next tutorial: https://www.youtube.com/watch?v=FCb3ds-ir8o&annotation_id=annotation_821341&src_vid=Uc9-JrEy8vw&feature=iv
-     * TESTINGTESTINGTESTING
-     */
+
     private static final String TAG = "Stringtest";
     private WebView mWebView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        String webURL ="http://www.google.com";
+
         Log.i(TAG, "onCreate");
         mWebView = (WebView) findViewById(R.id.webview);
         mWebView.getSettings().setJavaScriptEnabled(true); //XSS issues must be resolved, eventually...
-        mWebView.loadUrl("http://www.google.com");
-        mWebView.setWebViewClient(new HelloWebViewClient());
+        mWebView.setWebViewClient(new ThisWebViewClient());
+
+        /**
+         * If there is no saved instance state, then load the default webpage(webURL)
+         * This is needed because without it, the app will reload to the default webpage
+         * every time the phone is tilted.
+         */
+        if (savedInstanceState == null)
+        {
+            mWebView.loadUrl(webURL);
+        }
 
     }
 
@@ -37,7 +45,7 @@ public class MainActivity extends Activity {
      * Makes the application handle the web call for itself, instead of the default app
      * being called
      */
-    private class HelloWebViewClient extends WebViewClient {
+    private class ThisWebViewClient extends WebViewClient {
         @Override
         public boolean shouldOverrideUrlLoading(WebView webview, String url) {
             webview.loadUrl(url);
