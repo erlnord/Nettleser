@@ -2,18 +2,17 @@ package com.example.erlend.nettleser;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainActivity extends Activity {
 
@@ -24,11 +23,28 @@ public class MainActivity extends Activity {
         WebView webView = (WebView)findViewById(R.id.webview);
         TextView textView = (TextView)findViewById(R.id.website_text);
         webView.setWebViewClient(new WebViewClient());
-        webView.loadUrl(textView.getText().toString());
         webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setBuiltInZoomControls(true);
         webView.setVerticalScrollBarEnabled(true);
         webView.setHorizontalScrollBarEnabled(false);
+
+        String URL = textView.getText().toString();
+
+        List<String> urlTest = new ArrayList<String>();
+        urlTest.add("http://");
+
+        Pattern pattern = Pattern.compile(String.valueOf(urlTest));
+        Matcher matcher = pattern.matcher(URL);
+
+        if (matcher.find()){
+            webView.loadUrl(URL);
+        }
+        else {
+            webView.loadUrl("http://"+URL);
+        }
+
+        Log.d(TAG, "url ="+ URL);
+
     }
 
     @Override
