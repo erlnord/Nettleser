@@ -23,23 +23,33 @@ public class MainActivity extends Activity {
         WebView webView = (WebView)findViewById(R.id.webview);
         TextView textView = (TextView)findViewById(R.id.website_text);
         webView.setWebViewClient(new WebViewClient());
-        webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setBuiltInZoomControls(true);
         webView.setVerticalScrollBarEnabled(true);
         webView.setHorizontalScrollBarEnabled(false);
 
         String URL = textView.getText().toString();
 
-        List<String> urlTest = new ArrayList<String>();
-        urlTest.add("http://");
+        String Shttp = "http://";
+        String Swww = "www.";
 
-        Pattern pattern = Pattern.compile(String.valueOf(urlTest));
-        Matcher matcher = pattern.matcher(URL);
+        List<String> httpTest = new ArrayList<String>();
+        httpTest.add(Shttp);
 
-        if (matcher.find()){
+        List<String> wwwTest = new ArrayList<String>();
+        wwwTest.add(Swww);
+
+
+        Pattern pattern1 = Pattern.compile(String.valueOf(httpTest));
+        Matcher matcher1 = pattern1.matcher(URL);
+
+        Pattern pattern2 = Pattern.compile(String.valueOf(wwwTest));
+        Matcher matcher2 = pattern2.matcher(URL);
+
+        if (matcher1.find() && matcher2.find()){
             webView.loadUrl(URL);
-        }
-        else {
+        }else if (!matcher1.find()){
+            webView.loadUrl("http://"+URL);
+        }else if (!matcher2.find()){
             webView.loadUrl("http://"+URL);
         }
 
