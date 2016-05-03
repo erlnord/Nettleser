@@ -4,10 +4,14 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Button;
+import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +22,7 @@ public class MainActivity extends Activity {
 
     private static final String TAG = "Stringtest";
     private WebView mWebView;
+    private Button set_button;
 
     public void clickedButton(View view) {
         WebView webView = (WebView)findViewById(R.id.webview);
@@ -62,6 +67,29 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         String webURL ="http://www.google.com";
+
+        set_button = (Button) findViewById(R.id.set_button);
+        set_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PopupMenu popup = new PopupMenu(MainActivity.this, set_button);
+                popup.getMenuInflater()
+                        .inflate(R.menu.popup_menu, popup.getMenu());
+
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        Toast.makeText(
+                                MainActivity.this,
+                                "You Clicked : " + item.getTitle(),
+                                Toast.LENGTH_SHORT
+                        ).show();
+                        return true;
+                    }
+                });
+                popup.show();
+            }
+        });
 
         Log.i(TAG, "onCreate");
         mWebView = (WebView) findViewById(R.id.webview);

@@ -23,12 +23,24 @@
         />
 
     <Button
-        android:layout_width="64dp"
+        android:layout_width="35dp"
         android:layout_height="35dp"
-        android:text="@string/go"
+        android:background="@drawable/go"
         android:id="@+id/go_button"
         android:clickable="true"
         android:onClick="clickedButton"
+        android:layout_gravity="top"
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@+id/set_button"
+        />
+
+    <Button
+        android:id="@+id/set_button"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:background="@drawable/settings"
+        android:clickable="true"
+        android:onClick="clickedSetting"
         android:layout_gravity="top|right"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
