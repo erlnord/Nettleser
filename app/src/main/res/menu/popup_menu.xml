@@ -3,14 +3,17 @@
 
     <item
         android:id="@+id/one"
-        android:title="One"/>
+        android:title="New tab"
+        />
 
     <item
         android:id="@+id/two"
-        android:title="Two"/>
+        android:title="New layout"
+        />
 
     <item
         android:id="@+id/three"
-        android:title="Three"/>
+        android:title="New Color"
+        />
 
 </menu>

@@ -6,8 +6,7 @@
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:id="@+id/my_activity_view"
-    android:tag="main"
+    android:tag="newmain"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     >
 
@@ -17,10 +16,10 @@
         android:layout_height="40dp"
         android:text="@string/https"
         android:hint="@string/website_text"
-        android:layout_gravity="top|left|bottom"
+        android:layout_gravity="left|bottom"
         android:layout_toLeftOf="@+id/go_button"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="true"
         android:clickable="true"
         />
 
@@ -31,8 +30,8 @@
         android:id="@+id/go_button"
         android:clickable="true"
         android:onClick="clickedButton"
-        android:layout_gravity="top"
-        android:layout_alignParentTop="true"
+        android:layout_gravity="bottom"
+        android:layout_alignParentBottom="true"
         android:layout_toLeftOf="@+id/set_button"
         />
 
@@ -43,8 +42,8 @@
         android:background="@drawable/settings"
         android:clickable="true"
         android:onClick="clickedSetting"
-        android:layout_gravity="top|right"
-        android:layout_alignParentTop="true"
+        android:layout_gravity="bottom|right"
+        android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         />
 
@@ -53,6 +52,6 @@
         android:id="@+id/webview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/website_text" />
+        android:layout_above="@+id/website_text" />
 </RelativeLayout>
 

@@ -20,7 +20,10 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MainActivity extends Activity {
+/**
+ * Created by zteff1 on 5/4/2016.
+ */
+public class newMainActivity extends Activity {
 
     private static final String TAG = "Stringtest";
     private WebView mWebView;
@@ -62,7 +65,7 @@ public class MainActivity extends Activity {
     }
 
     public void changeActivity() {
-        Intent startNewActivity = new Intent(this, newMainActivity.class);
+        Intent startNewActivity = new Intent(this, MainActivity.class);
         startNewActivity.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(startNewActivity);
     }
@@ -70,7 +73,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+        setContentView(R.layout.newmain);
         String webURL ="http://www.google.com";
 
         addWebsite_text = (EditText) findViewById(R.id.website_text);
@@ -97,14 +100,14 @@ public class MainActivity extends Activity {
         final Button popupButton = (Button)findViewById(R.id.set_button) ;
         popupButton.setOnClickListener(new View.OnClickListener(){
             @Override
-                public void onClick(View z) {
-                    PopupMenu popupMenu = new PopupMenu(getApplicationContext(),z);
+            public void onClick(View z) {
+                PopupMenu popupMenu = new PopupMenu(getApplicationContext(),z);
 
                 popupMenu.inflate(R.menu.popup_menu);
                 popupMenu.show();
                 popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener(){
                     @Override
-                            public boolean onMenuItemClick(MenuItem item) {
+                    public boolean onMenuItemClick(MenuItem item) {
                         if (item.getItemId()==R.id.one) {
                             Toast.makeText(getApplicationContext(),"Created new tab",Toast.LENGTH_SHORT).show();
 
@@ -156,7 +159,7 @@ public class MainActivity extends Activity {
         }
     }
 
-        // Enables the browser to return
+    // Enables the browser to return
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event)
     {
@@ -171,7 +174,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onStart()
     {
-      super.onStart();
+        super.onStart();
         Log.i(TAG, "onStart");
     }
 
