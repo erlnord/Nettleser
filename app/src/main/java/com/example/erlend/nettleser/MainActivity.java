@@ -19,7 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+//Dette er bare en comment for å kunne pushe v1.
+//Forresten Steffen, KOMMENTER KODEN DIN PLS :) 
 public class MainActivity extends Activity {
 
     private static final String TAG = "Stringtest";
