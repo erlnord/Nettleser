@@ -9,4 +9,4 @@ Målet med dette prosjektet er å lage en sikker og brukervennlig nettleser til 
 * Some feature
 
 #### License
-Prosjektet er underlagt [MIT Lisensen](https://opensource.org/licenses/MIT)
+Prosjektet er underlagt [MIT Lisensen](https://github.com/erlnord/Nettleser/blob/develop/LICENSE)
