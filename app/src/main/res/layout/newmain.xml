@@ -5,9 +5,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:tag="newmain"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:background="@color/button_material_light"
     >
 
     <EditText
@@ -17,41 +20,36 @@
         android:text="@string/https"
         android:hint="@string/website_text"
         android:layout_gravity="left|bottom"
-        android:layout_toLeftOf="@+id/go_button"
         android:layout_alignParentLeft="true"
         android:layout_alignParentBottom="true"
         android:clickable="true"
-        />
-
-    <Button
-        android:layout_width="35dp"
-        android:layout_height="35dp"
-        android:background="@drawable/go"
-        android:id="@+id/go_button"
-        android:clickable="true"
-        android:onClick="clickedButton"
-        android:layout_gravity="bottom"
-        android:layout_alignParentBottom="true"
+        android:singleLine="true"
+        android:selectAllOnFocus="true"
+        android:imeOptions="actionDone"
+        android:textSize="15dp"
+        android:inputType="textUri"
         android:layout_toLeftOf="@+id/set_button"
-        />
+        android:layout_toStartOf="@+id/set_button"
+        android:layout_marginLeft="8dp"
+        android:layout_marginBottom="8dp" />
 
     <Button
         android:id="@+id/set_button"
         android:layout_width="35dp"
         android:layout_height="35dp"
-        android:background="@drawable/settings"
+        android:background="@mipmap/settings2"
         android:clickable="true"
-        android:onClick="clickedSetting"
         android:layout_gravity="bottom|right"
-        android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        />
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="12dp" />
 
 
-    <WebView  xmlns:android="http://schemas.android.com/apk/res/android"
+    <WebView
         android:id="@+id/webview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/website_text" />
+        android:layout_above="@+id/website_text"
+        android:layout_marginBottom="9dp" />
 </RelativeLayout>
 

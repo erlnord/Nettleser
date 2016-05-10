@@ -69,22 +69,17 @@ public class MainActivity extends Activity {
         return URL;
     };
 
+
+
     public void changeActivity() {
         Intent startNewActivity = new Intent(this, newMainActivity.class);
         startNewActivity.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(startNewActivity);
     }
 
-    public void openURL(View view) {
-        String handledURL = urlHandler(addWebsite_text.getText().toString());
-        mWebView.loadUrl(handledURL);
-        mWebView.requestFocus();
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE); // remove the title bar
         setContentView(R.layout.main);
 
         String webURL ="http://www.google.com";

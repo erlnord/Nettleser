@@ -2,11 +2,13 @@ package com.example.erlend.nettleser;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
@@ -29,15 +31,10 @@ public class newMainActivity extends Activity {
     private WebView mWebView;
     private EditText addWebsite_text;
 
-    public void clickedButton(View view) {
+    public String urlHandler(String string) {
         WebView webView = (WebView)findViewById(R.id.webview);
-        TextView textView = (TextView)findViewById(R.id.website_text);
-        webView.setWebViewClient(new WebViewClient());
-        webView.getSettings().setBuiltInZoomControls(true);
-        webView.setVerticalScrollBarEnabled(true);
-        webView.setHorizontalScrollBarEnabled(false);
 
-        String URL = textView.getText().toString();
+        String URL = string;
 
         String Shttp = "http://";
         String Swww = "www.";
@@ -55,14 +52,22 @@ public class newMainActivity extends Activity {
         Matcher matcher2 = pattern2.matcher(URL);
 
         if (matcher1.find() && matcher2.find()){
-            webView.loadUrl(URL);
-        }else if (!matcher1.find()){
-            webView.loadUrl(Shttp+URL);
-        }else if (!matcher2.find()){
-            webView.loadUrl(Shttp+URL);
+            //webView.loadUrl(URL);
+            return URL;
+        }else if (!matcher1.find() && !matcher2.find()){
+            return Shttp+Swww+URL;
+            //webView.loadUrl(Shttp+Swww+URL);
+        }else if (!matcher1.find()) {
+            return Shttp+URL;
+            //webView.loadUrl(Shttp+URL);
+        }
+        else if (!matcher2.find()){
+            return Shttp+URL;
+            //webView.loadUrl(Shttp+URL);
         }
         Log.d(TAG, "url ="+ URL);
-    }
+        return URL;
+    };
 
     public void changeActivity() {
         Intent startNewActivity = new Intent(this, MainActivity.class);
@@ -74,26 +79,23 @@ public class newMainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.newmain);
+
         String webURL ="http://www.google.com";
 
+        /**
+         * Enter key opens url in url-bar
+         */
         addWebsite_text = (EditText) findViewById(R.id.website_text);
-        addWebsite_text.setOnKeyListener(new View.OnKeyListener() {
+        addWebsite_text.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
-            public boolean onKey(View view, int keyCode, KeyEvent event)
-            {
-                if (event.getAction() == KeyEvent.ACTION_DOWN)
-                {
-                    switch (keyCode)
-                    {
-                        case KeyEvent.KEYCODE_ENTER:
-                        case KeyEvent.KEYCODE_NUMPAD_ENTER:
-                            clickedButton(view);
-                            return true;
-                        default:
-                            break;
-                    }
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                boolean handled = false;
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    String handledURL = urlHandler(addWebsite_text.getText().toString());
+                    mWebView.loadUrl(handledURL);
+                    mWebView.requestFocus();
                 }
-                return false;
+                return handled;
             }
         });
 
@@ -130,10 +132,44 @@ public class newMainActivity extends Activity {
         Log.i(TAG, "onCreate");
         mWebView = (WebView) findViewById(R.id.webview);
         mWebView.getSettings().setJavaScriptEnabled(true); //XSS issues must be resolved, eventually...
-        mWebView.getSettings().setBuiltInZoomControls(true);
+        mWebView.getSettings().setDisplayZoomControls(false); // remove on-display zoom controls
+        mWebView.getSettings().setBuiltInZoomControls(false); // remove on-display zoom controls
+        mWebView.getSettings().setDomStorageEnabled(true);
         mWebView.setVerticalScrollBarEnabled(true);
         mWebView.setHorizontalScrollBarEnabled(false);
-        mWebView.setWebViewClient(new ThisWebViewClient());
+        mWebView.setWebViewClient(new ThisWebViewClient() {
+            //mWebView.setWebViewClient(new WebViewClient() {
+
+            // Updates the url-bar whenever a page has loaded
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon)
+            {
+                // TODO Auto-generated method stub
+                super.onPageStarted(view, url, favicon);
+
+                addWebsite_text.setText(view.getUrl());
+            }
+
+            /**
+             * Litt usikker på hva denne gjør, men uten den vil
+             * ikke linker fra Google åpnes.
+             */
+            @Override
+            public void onPageFinished(WebView view, String url)
+            {
+
+                System.out.println("onPageFinished: " + url);
+                if ("about:blank".equals(url) && view.getTag() != null)
+                {
+                    view.loadUrl(view.getTag().toString());
+                }
+                else
+                {
+                    view.setTag(url);
+                }
+                addWebsite_text.setText(view.getUrl());
+            }
+        });
 
         /**
          * If there is no saved instance state, then load the default webpage(webURL)
