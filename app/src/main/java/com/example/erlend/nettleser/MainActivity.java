@@ -1,6 +1,8 @@
 package com.example.erlend.nettleser;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.http.SslError;
@@ -11,14 +13,19 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.SslErrorHandler;
+import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.PopupMenu;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ViewFlipper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +37,9 @@ public class MainActivity extends Activity {
     private static final String TAG = "Stringtest";
     private WebView mWebView;
     private EditText addWebsite_text;
+    private ProgressBar progress;
+    private String currentURL;
+    private ImageButton ib;
 
     public String urlHandler(String string) {
         WebView webView = (WebView)findViewById(R.id.webview);
@@ -69,12 +79,15 @@ public class MainActivity extends Activity {
         return URL;
     };
 
-
-
+    /**
+     * Switches layout. Puts the URL-bar on the bottom. Starts a new activity
+     */
     public void changeActivity() {
         Intent startNewActivity = new Intent(this, newMainActivity.class);
+        startNewActivity.putExtra("currentURL", mWebView.getUrl().toString());
         startNewActivity.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(startNewActivity);
+
     }
 
     @Override
@@ -82,26 +95,20 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        String webURL ="http://www.google.com";
+        /**
+         * Recieve the current URL if the activity was changed.
+         */
+        Bundle bundle = getIntent().getExtras();
+        if (bundle != null) {
+            currentURL = bundle.getString("currentURL");
+        }
+
+        String defaultURL ="http://www.google.com";
 
         /**
-         * Enter key opens url in url-bar
+         * Popup menu. Should probably be changed to an options menu.
          */
-        addWebsite_text = (EditText) findViewById(R.id.website_text);
-        addWebsite_text.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                boolean handled = false;
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    String handledURL = urlHandler(addWebsite_text.getText().toString());
-                    mWebView.loadUrl(handledURL);
-                    mWebView.requestFocus();
-                }
-                return handled;
-            }
-        });
-
-        final Button popupButton = (Button)findViewById(R.id.set_button) ;
+        final Button popupButton = (Button)findViewById(R.id.set_button);
         popupButton.setOnClickListener(new View.OnClickListener(){
             @Override
                 public void onClick(View z) {
@@ -109,6 +116,8 @@ public class MainActivity extends Activity {
 
                 popupMenu.inflate(R.menu.popup_menu);
                 popupMenu.show();
+
+                popupButton.setBackground(getResources().getDrawable(R.mipmap.settingsclicked));
                 popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener(){
                     @Override
                             public boolean onMenuItemClick(MenuItem item) {
@@ -141,18 +150,61 @@ public class MainActivity extends Activity {
         mWebView.getSettings().setDomStorageEnabled(true);
         mWebView.setVerticalScrollBarEnabled(true);
         mWebView.setHorizontalScrollBarEnabled(false);
-        mWebView.setWebViewClient(new ThisWebViewClient() {
-        //mWebView.setWebViewClient(new WebViewClient() {
+        mWebView.setWebChromeClient(new MyWebChromeClient());
 
-            // Updates the url-bar whenever a page has loaded
+        progress = (ProgressBar) findViewById(R.id.progressBar);
+
+        /**
+         * Enter key opens url in url-bar
+         */
+        addWebsite_text = (EditText) findViewById(R.id.website_text);
+        addWebsite_text.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
-            public void onPageStarted(WebView view, String url, Bitmap favicon)
-            {
-                // TODO Auto-generated method stub
-                super.onPageStarted(view, url, favicon);
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                boolean handled = false;
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    String handledURL = urlHandler(addWebsite_text.getText().toString());
+                    mWebView.loadUrl(handledURL);
+                    mWebView.requestFocus();
 
-                addWebsite_text.setText(view.getUrl());
+                    MainActivity.this.progress.setProgress(0);
+                }
+                return handled;
             }
+        });
+
+        /**
+         * Show and hide the cancel button on URL-bar focus.
+         * Also specifically summons and dismisses the keyboard.
+         */
+        ib = (ImageButton) findViewById(R.id.imageButton);
+        addWebsite_text.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    addWebsite_text.setPadding(20,0,70,0);
+                    ib.setVisibility(View.VISIBLE);
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.showSoftInput(addWebsite_text, InputMethodManager.SHOW_IMPLICIT);
+                } else {
+                    addWebsite_text.setPadding(20,0,20,0);
+                    ib.setVisibility(View.INVISIBLE);
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(addWebsite_text.getWindowToken(), 0);
+                }
+            }
+        });
+
+        ib.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mWebView.requestFocus();
+                addWebsite_text.setText(mWebView.getUrl().toString());
+            }
+        });
+
+
+        mWebView.setWebViewClient(new ThisWebViewClient() {
 
             /**
              * Litt usikker på hva denne gjør, men uten den vil
@@ -161,7 +213,6 @@ public class MainActivity extends Activity {
             @Override
             public void onPageFinished(WebView view, String url)
             {
-
                 System.out.println("onPageFinished: " + url);
                 if ("about:blank".equals(url) && view.getTag() != null)
                 {
@@ -171,7 +222,6 @@ public class MainActivity extends Activity {
                 {
                     view.setTag(url);
                 }
-                addWebsite_text.setText(view.getUrl());
             }
         });
 
@@ -182,9 +232,34 @@ public class MainActivity extends Activity {
          */
         if (savedInstanceState == null)
         {
-            mWebView.loadUrl(webURL);
+            if (currentURL == null) {
+                mWebView.loadUrl(defaultURL);
+            } else
+                mWebView.loadUrl(currentURL);
         }
 
+    }
+
+    /**
+     * Displays a progressbar when a page is loading. The progressbar
+     * gets hidden when the page has finished loading.
+     * Also updates the URL-bar with the current URL.
+     */
+    public class MyWebChromeClient extends WebChromeClient {
+            @Override
+            public void onProgressChanged(WebView view, int newProgress) {
+                addWebsite_text.setText(view.getUrl());
+                MainActivity.this.setValue(newProgress);
+                super.onProgressChanged(view, newProgress);
+                if (progress.getProgress() < 100) {
+                    progress.setVisibility(View.VISIBLE);
+                } else if (progress.getProgress() == 100) {
+                    progress.setVisibility(View.INVISIBLE);
+                }
+            }
+    }
+    public void setValue(int progress) {
+        this.progress.setProgress(progress);
     }
 
     /**
@@ -205,8 +280,8 @@ public class MainActivity extends Activity {
     {
         if ((keyCode == KeyEvent.KEYCODE_BACK) && mWebView.canGoBack())
         {
-            mWebView.goBack();
-            return true;
+                mWebView.goBack();
+                return true;
         }
         return super.onKeyDown(keyCode, event);
     }
