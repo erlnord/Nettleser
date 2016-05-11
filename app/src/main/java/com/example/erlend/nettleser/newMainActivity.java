@@ -4,8 +4,10 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
@@ -35,57 +37,8 @@ public class newMainActivity extends Activity {
     private WebView mWebView;
     private EditText addWebsite_text;
     private ProgressBar progress;
-    //private Boolean layout;
+    private String handledURL;
     private ImageButton ib;
-
-    public String urlHandler(String string) {
-        WebView webView = (WebView)findViewById(R.id.webview);
-
-        String URL = string;
-
-        String Shttp = "http://";
-        String Swww = "www.";
-
-        List<String> httpTest = new ArrayList<String>();
-        httpTest.add(Shttp);
-
-        List<String> wwwTest = new ArrayList<String>();
-        wwwTest.add(Swww);
-
-        Pattern pattern1 = Pattern.compile(String.valueOf(httpTest));
-        Matcher matcher1 = pattern1.matcher(URL);
-
-        Pattern pattern2 = Pattern.compile(String.valueOf(wwwTest));
-        Matcher matcher2 = pattern2.matcher(URL);
-
-        if (matcher1.find() && matcher2.find()){
-            //webView.loadUrl(URL);
-            return URL;
-        }else if (!matcher1.find() && !matcher2.find()){
-            return Shttp+Swww+URL;
-            //webView.loadUrl(Shttp+Swww+URL);
-        }else if (!matcher1.find()) {
-            return Shttp+URL;
-            //webView.loadUrl(Shttp+URL);
-        }
-        else if (!matcher2.find()){
-            return Shttp+URL;
-            //webView.loadUrl(Shttp+URL);
-        }
-        Log.d(TAG, "url ="+ URL);
-        return URL;
-    };
-
-    /**
-     * Switches layout. Puts the URL-bar on the bottom. Starts a new activity
-     */
-    public void changeActivity() {
-        Intent startNewActivity = new Intent(this, MainActivity.class);
-        startNewActivity.putExtra("currentURL", mWebView.getUrl().toString());
-        startNewActivity.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(startNewActivity);
-
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -158,7 +111,24 @@ public class newMainActivity extends Activity {
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 boolean handled = false;
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    String handledURL = urlHandler(addWebsite_text.getText().toString());
+                    String URL = addWebsite_text.getText().toString();
+
+                    // Checking if the URL is valid or not
+                    boolean isURL = Patterns.WEB_URL.matcher(addWebsite_text.getText().toString()).matches();
+
+                    // If the URL is valid, we open the webpage
+                    if (isURL) {
+                        if (!URL.startsWith("http://")) {
+                            handledURL = "http://" + URL;
+                        } else {
+                            handledURL = URL;
+                        }
+                    }
+                    // If the URL is not valid, we do a google search for the string
+                    else if (!isURL) {
+                        handledURL = "https://www.google.com/search?q="+URL;
+                    }
+
                     mWebView.loadUrl(handledURL);
                     mWebView.requestFocus();
 
@@ -171,7 +141,7 @@ public class newMainActivity extends Activity {
         /**
          * Show and hide the cancel button on URL-bar focus.
          * Also specifically summons and dismisses the keyboard.
-         */
+         *
         ib = (ImageButton) findViewById(R.id.imageButton);
         addWebsite_text.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
@@ -190,8 +160,17 @@ public class newMainActivity extends Activity {
             }
         });
 
+         */
+
 
         mWebView.setWebViewClient(new ThisWebViewClient() {
+
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                super.onPageStarted(view, url, favicon);
+                Log.v(TAG, "onPageStarted url: " + url);
+                addWebsite_text.setText(mWebView.getUrl());
+            }
 
             /**
              * Litt usikker på hva denne gjør, men uten den vil
@@ -209,6 +188,7 @@ public class newMainActivity extends Activity {
                 {
                     view.setTag(url);
                 }
+                addWebsite_text.setText(view.getUrl());
             }
         });
 
@@ -232,7 +212,6 @@ public class newMainActivity extends Activity {
     public class MyWebChromeClient extends WebChromeClient {
         @Override
         public void onProgressChanged(WebView view, int newProgress) {
-            addWebsite_text.setText(view.getUrl());
             newMainActivity.this.setValue(newProgress);
             super.onProgressChanged(view, newProgress);
             if (progress.getProgress() < 100) {
@@ -244,6 +223,17 @@ public class newMainActivity extends Activity {
     }
     public void setValue(int progress) {
         this.progress.setProgress(progress);
+    }
+
+    /**
+     * Switches layout. Puts the URL-bar on the bottom. Starts a new activity
+     */
+    public void changeActivity() {
+        Intent startNewActivity = new Intent(this, MainActivity.class);
+        startNewActivity.putExtra("currentURL", mWebView.getUrl().toString());
+        startNewActivity.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(startNewActivity);
+
     }
 
     /**

@@ -28,7 +28,7 @@
             android:layout_marginLeft="8dp"
             android:layout_marginTop="8dp"
             android:textSize="15dp"
-            android:inputType="textUri"
+            android:inputType="text|textAutoComplete"
             android:layout_toLeftOf="@+id/set_button"
             android:layout_toStartOf="@+id/set_button"
             android:background="@android:drawable/editbox_background_normal"
