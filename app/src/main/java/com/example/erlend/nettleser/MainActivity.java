@@ -1,22 +1,22 @@
 package com.example.erlend.nettleser;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.graphics.Bitmap;
-import android.net.http.SslError;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.webkit.SslErrorHandler;
 import android.webkit.WebChromeClient;
+import android.webkit.WebIconDatabase;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
@@ -26,12 +26,6 @@ import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ViewFlipper;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class MainActivity extends Activity {
 
@@ -43,10 +37,17 @@ public class MainActivity extends Activity {
     private String handledURL;
     private ImageButton ib;
 
+
+    private BookmarkDbHelper bDbHelper;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+
+        // Allow app to recieve favicons from urls
+        WebIconDatabase.getInstance().open(getDir("icons", MODE_PRIVATE).getPath());
 
         /**
          * Recieve the current URL if the activity was changed. Does nothing
@@ -102,7 +103,17 @@ public class MainActivity extends Activity {
         mWebView.getSettings().setDomStorageEnabled(true);
         mWebView.setVerticalScrollBarEnabled(true);
         mWebView.setHorizontalScrollBarEnabled(false);
-        mWebView.setWebChromeClient(new MyWebChromeClient());
+        mWebView.setWebChromeClient(new MyWebChromeClient() {
+            /**
+             * Enable receiving favicons
+             */
+            @Override
+            public void onReceivedIcon(WebView view, Bitmap icon) {
+                super.onReceivedIcon(view, icon);
+
+            }
+        });
+
         mWebView.setWebViewClient(new ThisWebViewClient());
 
         progress = (ProgressBar) findViewById(R.id.progressBar);
@@ -146,7 +157,7 @@ public class MainActivity extends Activity {
 
         /**
          * Show and hide the cancel button on URL-bar focus.
-         * Also specifically summons and dismisses the keyboard.
+         * Also explicitly summons and dismisses the keyboard.
          */
         ib = (ImageButton) findViewById(R.id.imageButton);
         addWebsite_text.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -177,6 +188,16 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 addWebsite_text.setText("");
+
+
+                byte [] favicon;
+                favicon = DbBitmapUtility.getBytes(mWebView.getFavicon());
+
+                if (favicon == null) {
+                    System.out.println("no favicon found");
+                }
+
+                addEntry(mWebView.getTitle(), mWebView.getUrl(), favicon);
             }
         });
 
@@ -194,6 +215,17 @@ public class MainActivity extends Activity {
                 mWebView.loadUrl(currentURL);
         }
 
+    }
+
+    // Insert into bookmark database
+    public void addEntry( String title, String url, byte[] favicon) throws SQLiteException{
+        bDbHelper = new BookmarkDbHelper(MainActivity.this);
+        SQLiteDatabase db = bDbHelper.getWritableDatabase();
+        ContentValues cv = new  ContentValues();
+        cv.put(BookmarkDbHelper.COLUMN_NAME_TITLE,     title);
+        cv.put(BookmarkDbHelper.COLUMN_NAME_URL,       url);
+        cv.put(BookmarkDbHelper.COLUMN_NAME_FAVICON,   favicon);
+        db.insert(BookmarkDbHelper.TABLE_NAME, null, cv );
     }
 
     /**
