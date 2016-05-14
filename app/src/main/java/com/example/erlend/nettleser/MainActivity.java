@@ -1,22 +1,22 @@
 package com.example.erlend.nettleser;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.graphics.Bitmap;
-import android.net.http.SslError;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.webkit.SslErrorHandler;
 import android.webkit.WebChromeClient;
+import android.webkit.WebIconDatabase;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
@@ -26,16 +26,10 @@ import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ViewFlipper;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class MainActivity extends Activity {
 
-    private static final String TAG = "Stringtest";
+    private static final String TAG = "Main tag";
     private WebView mWebView;
     private EditText addWebsite_text;
     private ProgressBar progress;
@@ -43,10 +37,17 @@ public class MainActivity extends Activity {
     private String handledURL;
     private ImageButton ib;
 
+
+    private BookmarkDbHelper bDbHelper;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+
+        // Allow app to recieve favicons from urls
+        WebIconDatabase.getInstance().open(getDir("icons", MODE_PRIVATE).getPath());
 
         /**
          * Recieve the current URL if the activity was changed. Does nothing
@@ -65,13 +66,14 @@ public class MainActivity extends Activity {
         final Button popupButton = (Button)findViewById(R.id.set_button);
         popupButton.setOnClickListener(new View.OnClickListener(){
             @Override
-                public void onClick(View z) {
-                    PopupMenu popupMenu = new PopupMenu(getApplicationContext(),z);
+                public void onClick(View view) {
+                    PopupMenu popupMenu = new PopupMenu(getApplicationContext(),view);
 
                 popupMenu.inflate(R.menu.popup_menu);
                 popupMenu.show();
 
                 popupButton.setBackground(getResources().getDrawable(R.mipmap.settingsclicked));
+
                 popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener(){
                     @Override
                             public boolean onMenuItemClick(MenuItem item) {
@@ -80,13 +82,28 @@ public class MainActivity extends Activity {
 
                             return true;
                         }
-                        if (item.getItemId()==R.id.two){
+                        if (item.getItemId()==R.id.two) {
                             Toast.makeText(getApplicationContext(),"Changed layout",Toast.LENGTH_SHORT).show();
                             changeActivity();
                         }
-                        if (item.getItemId()==R.id.three){
-                            Toast.makeText(getApplicationContext(),"Changed color",Toast.LENGTH_SHORT).show();
-                            return true;
+                        if (item.getItemId()==R.id.three) {
+                            Toast.makeText(getApplicationContext(),"Added bookmark",Toast.LENGTH_SHORT).show();
+
+                            byte [] favicon;
+                            favicon = DbBitmapUtility.getBytes(mWebView.getFavicon());
+
+                            if (favicon == null) {
+                                System.out.println("no favicon found");
+                            }
+
+                            addEntry(mWebView.getTitle(), mWebView.getUrl(), favicon);
+                        }
+                        if (item.getItemId()==R.id.four) {
+                            // つ ◕_◕ ༽つ ALLIANCE TAKE MY ENERGY つ ◕_◕ ༽つ
+                            Intent startBookmarkActivity = new Intent(MainActivity.this, BookmarkActivity.class);
+                            startActivityForResult(startBookmarkActivity, 1);
+                            //startBookmarkActivity.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            //startActivity(startBookmarkActivity);
                         }
                         return false;
                     }
@@ -123,7 +140,7 @@ public class MainActivity extends Activity {
 
                     // If the URL is valid, we open the webpage
                     if (isURL) {
-                        if (!URL.startsWith("http://")) {
+                        if (!URL.startsWith("http://") || (!URL.startsWith("https://"))) {
                             handledURL = "http://" + URL;
                         } else {
                             handledURL = URL;
@@ -146,7 +163,7 @@ public class MainActivity extends Activity {
 
         /**
          * Show and hide the cancel button on URL-bar focus.
-         * Also specifically summons and dismisses the keyboard.
+         * Also explicitly summons and dismisses the keyboard.
          */
         ib = (ImageButton) findViewById(R.id.imageButton);
         addWebsite_text.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -196,6 +213,17 @@ public class MainActivity extends Activity {
 
     }
 
+    // Insert into bookmark database
+    public void addEntry( String title, String url, byte[] favicon) throws SQLiteException{
+        bDbHelper = new BookmarkDbHelper(MainActivity.this);
+        SQLiteDatabase db = bDbHelper.getWritableDatabase();
+        ContentValues cv = new  ContentValues();
+        cv.put(BookmarkDbHelper.COLUMN_NAME_TITLE,     title);
+        cv.put(BookmarkDbHelper.COLUMN_NAME_URL,       url);
+        cv.put(BookmarkDbHelper.COLUMN_NAME_FAVICON,   favicon);
+        db.insert(BookmarkDbHelper.TABLE_NAME, null, cv );
+    }
+
     /**
      * Displays a progressbar when a page is loading. The progressbar
      * gets hidden when the page has finished loading.
@@ -215,6 +243,15 @@ public class MainActivity extends Activity {
                     progress.setVisibility(View.INVISIBLE);
                 }
             }
+
+            /**
+             * Enable receiving favicons
+             */
+            @Override
+            public void onReceivedIcon(WebView view, Bitmap icon) {
+                super.onReceivedIcon(view, icon);
+
+            }
     }
     public void setValue(int progress) {
         this.progress.setProgress(progress);
@@ -229,8 +266,21 @@ public class MainActivity extends Activity {
         startNewActivity.putExtra("currentURL", mWebView.getUrl().toString());
         startNewActivity.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(startNewActivity);
-
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (requestCode == 1) {
+            if(resultCode == Activity.RESULT_OK){
+                String result=data.getStringExtra("currentURL");
+                mWebView.loadUrl(result);
+            }
+            if (resultCode == Activity.RESULT_CANCELED) {
+                //Write your code if there's no result
+            }
+        }
+    }//onActivityResult
 
     /**
      * Makes the application handle the web call for itself, instead of the default app

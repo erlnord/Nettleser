@@ -231,7 +231,7 @@ public class newMainActivity extends Activity {
     public void changeActivity() {
         Intent startNewActivity = new Intent(this, MainActivity.class);
         startNewActivity.putExtra("currentURL", mWebView.getUrl().toString());
-        startNewActivity.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startNewActivity.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(startNewActivity);
 
     }
