@@ -1,6 +1,7 @@
 package com.example.erlend.nettleser;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
@@ -13,8 +14,9 @@ public class BookmarkDbHelper extends SQLiteOpenHelper {
 
     // Table name
     public static final String TABLE_NAME = "table_bookmarks";
+
     // Column name
-    public static final String COLUMN_NAME_ENTRY_ID = "bookmark_id";
+    public static final String COLUMN_NAME_ENTRY_ID = "_id";
     public static final String COLUMN_NAME_TITLE = "bookmark_title";
     public static final String COLUMN_NAME_URL = "bookmark_url";
     public static final String COLUMN_NAME_FAVICON = "bookmark_favicon";
@@ -39,6 +41,7 @@ public class BookmarkDbHelper extends SQLiteOpenHelper {
     // Database name
     public static final String DATABASE_NAME = "bookmark_db";
 
+
     public BookmarkDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -55,5 +58,19 @@ public class BookmarkDbHelper extends SQLiteOpenHelper {
         onUpgrade(db, oldVersion, newVersion);
     }
 
+    public static String getColumnNameEntryId() {
+        return COLUMN_NAME_ENTRY_ID;
+    }
 
+    public static String getColumnNameTitle() {
+        return COLUMN_NAME_TITLE;
+    }
+
+    public static String getColumnNameUrl() {
+        return COLUMN_NAME_URL;
+    }
+
+    public static String getColumnNameFavicon() {
+        return COLUMN_NAME_FAVICON;
+    }
 }

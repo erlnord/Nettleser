@@ -13,7 +13,11 @@
 
     <item
         android:id="@+id/three"
-        android:title="New Color"
+        android:title="Add bookmark"
+        />
+    <item
+        android:id="@+id/four"
+        android:title="Bookmarks"
         />
 
 </menu>

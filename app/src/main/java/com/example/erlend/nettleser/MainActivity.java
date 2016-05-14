@@ -29,7 +29,7 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
-    private static final String TAG = "Stringtest";
+    private static final String TAG = "Main tag";
     private WebView mWebView;
     private EditText addWebsite_text;
     private ProgressBar progress;
@@ -66,13 +66,14 @@ public class MainActivity extends Activity {
         final Button popupButton = (Button)findViewById(R.id.set_button);
         popupButton.setOnClickListener(new View.OnClickListener(){
             @Override
-                public void onClick(View z) {
-                    PopupMenu popupMenu = new PopupMenu(getApplicationContext(),z);
+                public void onClick(View view) {
+                    PopupMenu popupMenu = new PopupMenu(getApplicationContext(),view);
 
                 popupMenu.inflate(R.menu.popup_menu);
                 popupMenu.show();
 
                 popupButton.setBackground(getResources().getDrawable(R.mipmap.settingsclicked));
+
                 popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener(){
                     @Override
                             public boolean onMenuItemClick(MenuItem item) {
@@ -81,13 +82,28 @@ public class MainActivity extends Activity {
 
                             return true;
                         }
-                        if (item.getItemId()==R.id.two){
+                        if (item.getItemId()==R.id.two) {
                             Toast.makeText(getApplicationContext(),"Changed layout",Toast.LENGTH_SHORT).show();
                             changeActivity();
                         }
-                        if (item.getItemId()==R.id.three){
-                            Toast.makeText(getApplicationContext(),"Changed color",Toast.LENGTH_SHORT).show();
-                            return true;
+                        if (item.getItemId()==R.id.three) {
+                            Toast.makeText(getApplicationContext(),"Added bookmark",Toast.LENGTH_SHORT).show();
+
+                            byte [] favicon;
+                            favicon = DbBitmapUtility.getBytes(mWebView.getFavicon());
+
+                            if (favicon == null) {
+                                System.out.println("no favicon found");
+                            }
+
+                            addEntry(mWebView.getTitle(), mWebView.getUrl(), favicon);
+                        }
+                        if (item.getItemId()==R.id.four) {
+                            // つ ◕_◕ ༽つ ALLIANCE TAKE MY ENERGY つ ◕_◕ ༽つ
+                            Intent startBookmarkActivity = new Intent(MainActivity.this, BookmarkActivity.class);
+                            startActivityForResult(startBookmarkActivity, 1);
+                            //startBookmarkActivity.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            //startActivity(startBookmarkActivity);
                         }
                         return false;
                     }
@@ -103,17 +119,7 @@ public class MainActivity extends Activity {
         mWebView.getSettings().setDomStorageEnabled(true);
         mWebView.setVerticalScrollBarEnabled(true);
         mWebView.setHorizontalScrollBarEnabled(false);
-        mWebView.setWebChromeClient(new MyWebChromeClient() {
-            /**
-             * Enable receiving favicons
-             */
-            @Override
-            public void onReceivedIcon(WebView view, Bitmap icon) {
-                super.onReceivedIcon(view, icon);
-
-            }
-        });
-
+        mWebView.setWebChromeClient(new MyWebChromeClient());
         mWebView.setWebViewClient(new ThisWebViewClient());
 
         progress = (ProgressBar) findViewById(R.id.progressBar);
@@ -134,7 +140,7 @@ public class MainActivity extends Activity {
 
                     // If the URL is valid, we open the webpage
                     if (isURL) {
-                        if (!URL.startsWith("http://")) {
+                        if (!URL.startsWith("http://") || (!URL.startsWith("https://"))) {
                             handledURL = "http://" + URL;
                         } else {
                             handledURL = URL;
@@ -188,16 +194,6 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 addWebsite_text.setText("");
-
-
-                byte [] favicon;
-                favicon = DbBitmapUtility.getBytes(mWebView.getFavicon());
-
-                if (favicon == null) {
-                    System.out.println("no favicon found");
-                }
-
-                addEntry(mWebView.getTitle(), mWebView.getUrl(), favicon);
             }
         });
 
@@ -247,6 +243,15 @@ public class MainActivity extends Activity {
                     progress.setVisibility(View.INVISIBLE);
                 }
             }
+
+            /**
+             * Enable receiving favicons
+             */
+            @Override
+            public void onReceivedIcon(WebView view, Bitmap icon) {
+                super.onReceivedIcon(view, icon);
+
+            }
     }
     public void setValue(int progress) {
         this.progress.setProgress(progress);
@@ -261,8 +266,21 @@ public class MainActivity extends Activity {
         startNewActivity.putExtra("currentURL", mWebView.getUrl().toString());
         startNewActivity.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(startNewActivity);
-
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (requestCode == 1) {
+            if(resultCode == Activity.RESULT_OK){
+                String result=data.getStringExtra("currentURL");
+                mWebView.loadUrl(result);
+            }
+            if (resultCode == Activity.RESULT_CANCELED) {
+                //Write your code if there's no result
+            }
+        }
+    }//onActivityResult
 
     /**
      * Makes the application handle the web call for itself, instead of the default app
