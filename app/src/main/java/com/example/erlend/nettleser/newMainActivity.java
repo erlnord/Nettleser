@@ -1,8 +1,11 @@
 package com.example.erlend.nettleser;
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -39,6 +42,8 @@ public class newMainActivity extends Activity {
     private ProgressBar progress;
     private String handledURL;
     private ImageButton ib;
+
+    private BookmarkDbHelper bDbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,8 +84,23 @@ public class newMainActivity extends Activity {
                             changeActivity();
                         }
                         if (item.getItemId()==R.id.three){
-                            Toast.makeText(getApplicationContext(),"Changed color",Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(),"Added bookmark",Toast.LENGTH_SHORT).show();
+                            byte [] favicon;
+                            favicon = DbBitmapUtility.getBytes(mWebView.getFavicon());
+
+                            if (favicon == null) {
+                                System.out.println("no favicon found");
+                            }
+
+                            addEntry(mWebView.getTitle(), mWebView.getUrl(), favicon);
                             return true;
+                        }
+                        if (item.getItemId()==R.id.four) {
+                            // つ ◕_◕ ༽つ ALLIANCE TAKE MY ENERGY つ ◕_◕ ༽つ
+                            Intent startBookmarkActivity = new Intent(newMainActivity.this, BookmarkActivity.class);
+                            startActivityForResult(startBookmarkActivity, 1);
+                            //startBookmarkActivity.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            //startActivity(startBookmarkActivity);
                         }
                         return false;
                     }
@@ -202,6 +222,17 @@ public class newMainActivity extends Activity {
             mWebView.loadUrl(currentURL);
         }
 
+    }
+
+    // Insert into bookmark database
+    public void addEntry( String title, String url, byte[] favicon) throws SQLiteException {
+        bDbHelper = new BookmarkDbHelper(newMainActivity.this);
+        SQLiteDatabase db = bDbHelper.getWritableDatabase();
+        ContentValues cv = new  ContentValues();
+        cv.put(BookmarkDbHelper.COLUMN_NAME_TITLE,     title);
+        cv.put(BookmarkDbHelper.COLUMN_NAME_URL,       url);
+        cv.put(BookmarkDbHelper.COLUMN_NAME_FAVICON,   favicon);
+        db.insert(BookmarkDbHelper.TABLE_NAME, null, cv );
     }
 
     /**

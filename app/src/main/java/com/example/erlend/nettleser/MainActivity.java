@@ -78,11 +78,13 @@ public class MainActivity extends Activity {
                     @Override
                             public boolean onMenuItemClick(MenuItem item) {
                         if (item.getItemId()==R.id.one) {
+                            // just showing a "Created new tab" text
                             Toast.makeText(getApplicationContext(),"Created new tab",Toast.LENGTH_SHORT).show();
 
                             return true;
                         }
                         if (item.getItemId()==R.id.two) {
+                            // swapping layout with changeActivity metode
                             Toast.makeText(getApplicationContext(),"Changed layout",Toast.LENGTH_SHORT).show();
                             changeActivity();
                         }
