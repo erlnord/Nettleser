@@ -9,6 +9,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.PopupMenu;
@@ -25,11 +27,17 @@ public class MainActivity extends Activity {
 
     private static final String TAG = "Stringtest";
     private WebView mWebView;
-    private EditText addWebsite_text;
+    AutoCompleteTextView acTextView;
+    String[] urls = {"https://www.youtube.com", //The list of known URLS that will auto complete.
+                     "https://www.google.com",
+                     "https://www.facebook.com",
+                     "https://www.gmail.com",
+                     "https://www.hotmail.com"
+                     "https://www.uia.no/student"};
 
     public void clickedButton(View view) {
         WebView webView = (WebView)findViewById(R.id.webview);
-        TextView textView = (TextView)findViewById(R.id.website_text);
+        TextView textView = (TextView)findViewById(R.id.autoCompleteTextView);
         webView.setWebViewClient(new WebViewClient());
         webView.getSettings().setBuiltInZoomControls(true);
         webView.setVerticalScrollBarEnabled(true);
@@ -73,9 +81,11 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         String webURL ="http://www.google.com";
-
-        addWebsite_text = (EditText) findViewById(R.id.website_text);
-        addWebsite_text.setOnKeyListener(new View.OnKeyListener() {
+        acTextView = (AutoCompleteTextView)findViewById(R.id.autoCompleteTextView);
+        ArrayAdapter adapter = new ArrayAdapter(this, android.R.layout.select_dialog_item, urls);
+        acTextView.setThreshold(13);
+        acTextView.setAdapter(adapter);
+        acTextView.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View view, int keyCode, KeyEvent event)
             {
