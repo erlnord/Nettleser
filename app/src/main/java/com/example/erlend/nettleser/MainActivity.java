@@ -7,18 +7,22 @@ import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.CookieManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebIconDatabase;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.webkit.WebViewDatabase;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -26,6 +30,8 @@ import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.logging.Level;
 
 public class MainActivity extends Activity {
 
@@ -40,25 +46,38 @@ public class MainActivity extends Activity {
 
     private BookmarkDbHelper bDbHelper;
 
+    // Variable to dermine if incognito is enabled.
+    private boolean isIncognito = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        /**
+         * Receive the current URL if the activity was changed. Does nothing
+         * if there was no previous activity, i.e. we have not yet changed activity.
+         */
+        Bundle bundle = getIntent().getExtras();
+        if (bundle != null) {
+            currentURL = bundle.getString("currentURL");
+            isIncognito = bundle.getBoolean("getIncognito");
+        }
+
+        if (isIncognito == true) {
+            this.setTitle("Incognito mode");
+        } else {
+            requestWindowFeature(Window.FEATURE_NO_TITLE);
+        }
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
         // Allow app to recieve favicons from urls
         WebIconDatabase.getInstance().open(getDir("icons", MODE_PRIVATE).getPath());
 
-        /**
-         * Recieve the current URL if the activity was changed. Does nothing
-         * if there was no previous activity, i.e. we have not yet changed activity.
-         */
-        Bundle bundle = getIntent().getExtras();
-        if (bundle != null) {
-            currentURL = bundle.getString("currentURL");
-        }
 
-        String defaultURL ="http://www.google.com";
+
+        String defaultURL = "http://www.google.com";
 
         /**
          * Popup menu. Should probably be changed to an options menu?
@@ -84,16 +103,17 @@ public class MainActivity extends Activity {
                             return true;
                         }
                         if (item.getItemId()==R.id.two) {
-                            // swapping layout with changeActivity metode
+
+                            // swapping layout with changeActivity method
                             Toast.makeText(getApplicationContext(),"Changed layout",Toast.LENGTH_SHORT).show();
                             changeActivity();
                         }
                         if (item.getItemId()==R.id.three) {
+                            // saves the current URL into the bookmark database
                             Toast.makeText(getApplicationContext(),"Added bookmark",Toast.LENGTH_SHORT).show();
 
                             byte [] favicon;
                             favicon = DbBitmapUtility.getBytes(mWebView.getFavicon());
-
                             if (favicon == null) {
                                 System.out.println("no favicon found");
                             }
@@ -101,11 +121,30 @@ public class MainActivity extends Activity {
                             addEntry(mWebView.getTitle(), mWebView.getUrl(), favicon);
                         }
                         if (item.getItemId()==R.id.four) {
-                            // つ ◕_◕ ༽つ ALLIANCE TAKE MY ENERGY つ ◕_◕ ༽つ
+                            // Show the bookmark view
                             Intent startBookmarkActivity = new Intent(MainActivity.this, BookmarkActivity.class);
                             startActivityForResult(startBookmarkActivity, 1);
-                            //startBookmarkActivity.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            //startActivity(startBookmarkActivity);
+
+                        }
+                        // Enable or disable incognito mode
+                        if (item.getItemId()==R.id.five) {
+                            System.out.println("Incognito is now: " + isIncognito);
+                            if (isIncognito == false) {
+                                isIncognito = true;
+                                Intent intent = getIntent();
+                                intent.putExtra("getIncognito", isIncognito);
+                                finish();
+                                startActivity(intent);
+                                System.out.println("Incognito is now enabled");
+                            }
+                            else if (isIncognito == true) {
+                                isIncognito = false;
+                                Intent intent = getIntent();
+                                intent.putExtra("getIncognito", isIncognito);
+                                finish();
+                                startActivity(intent);
+                                System.out.println("Incognito is no disabled");
+                            }
                         }
                         return false;
                     }
@@ -123,6 +162,31 @@ public class MainActivity extends Activity {
         mWebView.setHorizontalScrollBarEnabled(false);
         mWebView.setWebChromeClient(new MyWebChromeClient());
         mWebView.setWebViewClient(new ThisWebViewClient());
+
+
+        /**
+         * Incognito/private browsing mode.
+         * Using a global variable to set incognito to enabled or disabled.
+         * When enabled no cookies are stored, no forms are stored and no passwords are stored.
+         */
+        if (isIncognito()) {
+            //Make sure no cookies are created
+            if (Build.VERSION.SDK_INT >= 21) {
+                CookieManager.getInstance().removeAllCookies(null);
+            } else {
+                CookieManager.getInstance().setAcceptCookie(false);
+            }
+            //Make sure no caching is done
+            mWebView.getSettings().setCacheMode(mWebView.getSettings().LOAD_NO_CACHE);
+            mWebView.getSettings().setAppCacheEnabled(false);
+            mWebView.clearHistory();
+            mWebView.clearCache(true);
+            //Make sure no autofill for Forms/ user-name password happens for the app
+            WebViewDatabase.getInstance(this).clearFormData();
+            mWebView.clearFormData();
+            mWebView.getSettings().setSavePassword(false);
+            mWebView.getSettings().setSaveFormData(false);
+        }
 
         progress = (ProgressBar) findViewById(R.id.progressBar);
 
@@ -212,6 +276,7 @@ public class MainActivity extends Activity {
             } else
                 mWebView.loadUrl(currentURL);
         }
+
 
     }
 
@@ -312,6 +377,10 @@ public class MainActivity extends Activity {
                 view.setTag(url);
             }
         }
+    }
+
+    public boolean isIncognito() {
+        return isIncognito;
     }
 
         // Enables the browser to return

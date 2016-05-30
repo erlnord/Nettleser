@@ -19,5 +19,9 @@
         android:id="@+id/four"
         android:title="Bookmarks"
         />
+    <item
+        android:id="@+id/five"
+        android:title="Incognito enable/disable"
+        />
 
 </menu>
