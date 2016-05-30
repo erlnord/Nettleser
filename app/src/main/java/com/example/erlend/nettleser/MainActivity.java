@@ -20,6 +20,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.webkit.CookieManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebIconDatabase;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.webkit.WebViewDatabase;
@@ -31,7 +32,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.logging.Level;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends Activity {
 
@@ -46,7 +48,7 @@ public class MainActivity extends Activity {
 
     private BookmarkDbHelper bDbHelper;
 
-    // Variable to dermine if incognito is enabled.
+    // Variable to determine if incognito is enabled.
     private boolean isIncognito = false;
 
 
@@ -70,6 +72,7 @@ public class MainActivity extends Activity {
         }
 
         super.onCreate(savedInstanceState);
+        AdBlocker.init(this);
         setContentView(R.layout.main);
 
         // Allow app to recieve favicons from urls
@@ -77,7 +80,7 @@ public class MainActivity extends Activity {
 
 
 
-        String defaultURL = "http://www.google.com";
+        final String defaultURL = "http://www.google.com";
 
         /**
          * Popup menu. Should probably be changed to an options menu?
@@ -85,8 +88,8 @@ public class MainActivity extends Activity {
         final Button popupButton = (Button)findViewById(R.id.set_button);
         popupButton.setOnClickListener(new View.OnClickListener(){
             @Override
-                public void onClick(View view) {
-                    PopupMenu popupMenu = new PopupMenu(getApplicationContext(),view);
+            public void onClick(View view) {
+                PopupMenu popupMenu = new PopupMenu(getApplicationContext(),view);
 
                 popupMenu.inflate(R.menu.popup_menu);
                 popupMenu.show();
@@ -95,7 +98,7 @@ public class MainActivity extends Activity {
 
                 popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener(){
                     @Override
-                            public boolean onMenuItemClick(MenuItem item) {
+                    public boolean onMenuItemClick(MenuItem item) {
                         if (item.getItemId()==R.id.one) {
                             // just showing a "Created new tab" text
                             Toast.makeText(getApplicationContext(),"Created new tab",Toast.LENGTH_SHORT).show();
@@ -126,13 +129,17 @@ public class MainActivity extends Activity {
                             startActivityForResult(startBookmarkActivity, 1);
 
                         }
-                        // Enable or disable incognito mode
+
+                        /**
+                         * Enable or disable incognito mode
+                         */
                         if (item.getItemId()==R.id.five) {
                             System.out.println("Incognito is now: " + isIncognito);
                             if (isIncognito == false) {
                                 isIncognito = true;
                                 Intent intent = getIntent();
                                 intent.putExtra("getIncognito", isIncognito);
+                                intent.putExtra("currentURL", defaultURL);
                                 finish();
                                 startActivity(intent);
                                 System.out.println("Incognito is now enabled");
@@ -141,6 +148,7 @@ public class MainActivity extends Activity {
                                 isIncognito = false;
                                 Intent intent = getIntent();
                                 intent.putExtra("getIncognito", isIncognito);
+                                intent.putExtra("currentURL", defaultURL);
                                 finish();
                                 startActivity(intent);
                                 System.out.println("Incognito is no disabled");
@@ -162,6 +170,10 @@ public class MainActivity extends Activity {
         mWebView.setHorizontalScrollBarEnabled(false);
         mWebView.setWebChromeClient(new MyWebChromeClient());
         mWebView.setWebViewClient(new ThisWebViewClient());
+        mWebView.getSettings().setUseWideViewPort(true); // fix scaling on some pages
+        mWebView.getSettings().setLoadWithOverviewMode(true); // fix scaling on some pages
+
+        progress = (ProgressBar) findViewById(R.id.progressBar);
 
 
         /**
@@ -188,8 +200,6 @@ public class MainActivity extends Activity {
             mWebView.getSettings().setSaveFormData(false);
         }
 
-        progress = (ProgressBar) findViewById(R.id.progressBar);
-
         /**
          * Enter key opens url in url-bar
          */
@@ -206,10 +216,16 @@ public class MainActivity extends Activity {
 
                     // If the URL is valid, we open the webpage
                     if (isURL) {
-                        if (!URL.startsWith("http://") || (!URL.startsWith("https://"))) {
-                            handledURL = "http://" + URL;
-                        } else {
+
+                        // Checking if the URL starts with https or http. If not then we
+                        // add it at the start of the URL string. This is a fix for some pages
+                        // requiring the http or https tag at the start.
+                        if (URL.startsWith("https://")) {
                             handledURL = URL;
+                        } else if (URL.startsWith("http://")) {
+                            handledURL = URL;
+                        } else {
+                            handledURL = "http://" + URL;
                         }
                     }
                     // If the URL is not valid, we do a google search for the string
@@ -280,7 +296,7 @@ public class MainActivity extends Activity {
 
     }
 
-    // Insert into bookmark database
+    // Insert into bookmark database. Requires a title, an url and a bitmap image
     public void addEntry( String title, String url, byte[] favicon) throws SQLiteException{
         bDbHelper = new BookmarkDbHelper(MainActivity.this);
         SQLiteDatabase db = bDbHelper.getWritableDatabase();
@@ -293,32 +309,32 @@ public class MainActivity extends Activity {
 
     /**
      * Displays a progressbar when a page is loading. The progressbar
-     * gets hidden when the page has finished loading.
+     * is hidden when the page has finished loading.
      * Also updates the URL-bar with the current URL.
      */
     public class MyWebChromeClient extends WebChromeClient {
-            @Override
-            public void onProgressChanged(WebView view, int newProgress) {
-                if (!addWebsite_text.hasFocus()) {
-                    addWebsite_text.setText(mWebView.getUrl());
-                }
-                MainActivity.this.setValue(newProgress);
-                super.onProgressChanged(view, newProgress);
-                if (progress.getProgress() < 100) {
-                    progress.setVisibility(View.VISIBLE);
-                } else if (progress.getProgress() == 100) {
-                    progress.setVisibility(View.INVISIBLE);
-                }
+        @Override
+        public void onProgressChanged(WebView view, int newProgress) {
+            if (!addWebsite_text.hasFocus()) {
+                addWebsite_text.setText(mWebView.getUrl());
             }
-
-            /**
-             * Enable receiving favicons
-             */
-            @Override
-            public void onReceivedIcon(WebView view, Bitmap icon) {
-                super.onReceivedIcon(view, icon);
-
+            MainActivity.this.setValue(newProgress);
+            super.onProgressChanged(view, newProgress);
+            if (progress.getProgress() < 100) {
+                progress.setVisibility(View.VISIBLE);
+            } else if (progress.getProgress() == 100) {
+                progress.setVisibility(View.INVISIBLE);
             }
+        }
+
+        /**
+         * Enable receiving favicons
+         */
+        @Override
+        public void onReceivedIcon(WebView view, Bitmap icon) {
+            super.onReceivedIcon(view, icon);
+
+        }
     }
     public void setValue(int progress) {
         this.progress.setProgress(progress);
@@ -361,36 +377,54 @@ public class MainActivity extends Activity {
         }
 
         /**
-         * Litt usikker på hva denne gjør, men uten den vil
-         * ikke linker fra Google åpnes.
+         * For some reason links on Google-search won't open without this
          */
         @Override
         public void onPageFinished(WebView view, String url)
         {
             System.out.println("onPageFinished: " + url);
             if ("about:blank".equals(url) && view.getTag() != null)
-            {
                 view.loadUrl(view.getTag().toString());
-            }
             else
-            {
                 view.setTag(url);
-            }
         }
+
+        // Caching the checked urls
+        private Map<String, Boolean> loadedUrls = new HashMap<>();
+
+        /**
+         * Check if the urls that are being requested to load are ads. If they are ads we
+         * remove hide them and try to create an empty HTML container to replace them.
+         *
+         * The urls that have already been checked are cached so we
+         * won't spend time and resources checking them again.
+         */
+        @Override
+        public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+            boolean ad;
+            if (!loadedUrls.containsKey(url)) {
+                ad = AdBlocker.isAd(url);
+                loadedUrls.put(url, ad);
+            } else {
+                ad = loadedUrls.get(url);
+            }
+            return ad ? AdBlocker.createEmptyResource() : super.shouldInterceptRequest(view, url);
+        }
+
     }
 
     public boolean isIncognito() {
         return isIncognito;
     }
 
-        // Enables the browser to return
+    // Enables the browser to return
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event)
     {
         if ((keyCode == KeyEvent.KEYCODE_BACK) && mWebView.canGoBack())
         {
-                mWebView.goBack();
-                return true;
+            mWebView.goBack();
+            return true;
         }
         return super.onKeyDown(keyCode, event);
     }
@@ -398,7 +432,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onStart()
     {
-      super.onStart();
+        super.onStart();
         Log.i(TAG, "onStart");
     }
 

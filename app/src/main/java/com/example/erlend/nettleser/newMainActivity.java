@@ -2,12 +2,10 @@ package com.example.erlend.nettleser;
 
 import android.app.Activity;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Patterns;
@@ -15,7 +13,6 @@ import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -26,11 +23,6 @@ import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created by zteff1 on 5/4/2016.
@@ -162,22 +154,22 @@ public class newMainActivity extends Activity {
          * Show and hide the cancel button on URL-bar focus.
          * Also specifically summons and dismisses the keyboard.
          *
-        ib = (ImageButton) findViewById(R.id.imageButton);
-        addWebsite_text.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus) {
-                    addWebsite_text.setPadding(20,0,70,0);
-                    ib.setVisibility(View.VISIBLE);
-                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.showSoftInput(addWebsite_text, InputMethodManager.SHOW_IMPLICIT);
-                } else {
-                    addWebsite_text.setPadding(20,0,20,0);
-                    ib.setVisibility(View.INVISIBLE);
-                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(addWebsite_text.getWindowToken(), 0);
-                }
-            }
+         ib = (ImageButton) findViewById(R.id.imageButton);
+         addWebsite_text.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        @Override
+        public void onFocusChange(View v, boolean hasFocus) {
+        if (hasFocus) {
+        addWebsite_text.setPadding(20,0,70,0);
+        ib.setVisibility(View.VISIBLE);
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.showSoftInput(addWebsite_text, InputMethodManager.SHOW_IMPLICIT);
+        } else {
+        addWebsite_text.setPadding(20,0,20,0);
+        ib.setVisibility(View.INVISIBLE);
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(addWebsite_text.getWindowToken(), 0);
+        }
+        }
         });
 
          */
