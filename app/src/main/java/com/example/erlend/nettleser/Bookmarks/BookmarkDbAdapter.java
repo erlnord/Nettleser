@@ -1,12 +1,13 @@
-package com.example.erlend.nettleser;
+package com.example.erlend.nettleser.Bookmarks;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 
+import com.example.erlend.nettleser.DbBitmapUtility;
+
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by larsmartin on 13/05/16.

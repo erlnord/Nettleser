@@ -29,7 +29,7 @@
                 <action android:name="android.intent.action.VIEW" />
             </intent-filter>
         </activity>
-        <activity android:name=".BookmarkActivity"></activity>
+        <activity android:name=".Bookmarks.BookmarkActivity"></activity>
     </application>
 
 </manifest>

@@ -32,6 +32,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.erlend.nettleser.Bookmarks.BookmarkActivity;
+import com.example.erlend.nettleser.Bookmarks.BookmarkDbHelper;
+
 import java.util.HashMap;
 import java.util.Map;
 

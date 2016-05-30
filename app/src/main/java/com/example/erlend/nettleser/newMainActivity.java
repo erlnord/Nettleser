@@ -24,6 +24,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.erlend.nettleser.Bookmarks.BookmarkActivity;
+import com.example.erlend.nettleser.Bookmarks.BookmarkDbHelper;
+
 /**
  * Created by zteff1 on 5/4/2016.
  */

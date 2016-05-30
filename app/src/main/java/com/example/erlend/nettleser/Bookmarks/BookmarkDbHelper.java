@@ -1,4 +1,4 @@
-package com.example.erlend.nettleser;
+package com.example.erlend.nettleser.Bookmarks;
 
 import android.content.Context;
 import android.database.Cursor;

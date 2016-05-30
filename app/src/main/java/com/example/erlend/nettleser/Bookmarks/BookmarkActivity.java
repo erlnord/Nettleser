@@ -1,4 +1,4 @@
-package com.example.erlend.nettleser;
+package com.example.erlend.nettleser.Bookmarks;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -11,6 +11,8 @@ import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
+
+import com.example.erlend.nettleser.R;
 
 public class BookmarkActivity extends Activity {
 
