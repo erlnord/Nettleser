@@ -1,9 +1,11 @@
 package com.browser.volant.Activities;
 
 import android.app.Activity;
+import android.app.SharedElementCallback;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.graphics.Bitmap;
@@ -35,7 +37,10 @@ import android.widget.Toast;
 import com.browser.volant.AdBlocker;
 import com.browser.volant.BitmapUtility;
 import com.browser.volant.Database.BookmarkDbHelper;
-import com.example.erlend.nettleser.R;
+import com.browser.volant.R;
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.common.api.GoogleApiClient;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,35 +48,46 @@ import java.util.Map;
 public class MainActivity extends Activity {
 
     private static final String TAG = "Main tag";
-    private WebView mWebView;
-    private EditText addWebsite_text;
-    private ProgressBar progress;
-    private String currentURL;
-    private String handledURL;
-    private ImageButton ib;
-
 
     private BookmarkDbHelper bDbHelper;
 
-    // Variable to determine if incognito is enabled.
+    private WebView mWebView;
+    private EditText addWebsite_text;
+    private ProgressBar progress;
+    private ImageButton ib;
+
+    // Variable to determine if incognito is enabled. It is disabled by default.
     private boolean isIncognito = false;
+    // Variable to determnie if AdBlock is enabled. This is enabled by default.
+    private boolean AdblockEnabled = true;
+    private String currentURL; // global variable for the current url
+    private String defaultURL = "http://www.google.com";
 
-    final String defaultURL = "http://www.google.com";
-
+    public String IS_ADBLOCK_ENABLED;
+    public String GET_TEMP_URL;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
+        // We check if the adblock function is enabled or disabled before we enable the view.
+        SharedPreferences adblockprefs = getSharedPreferences(IS_ADBLOCK_ENABLED, MODE_PRIVATE);
+        AdblockEnabled = adblockprefs.getBoolean("adblockstatus", true);
+
+        // We get the temporary url (if there is one) and use it. Then we remove the temp url.
+        SharedPreferences urlprefs = getSharedPreferences(GET_TEMP_URL, MODE_PRIVATE);
+        currentURL = urlprefs.getString("tempurl", null);
+        saveTempUrl(null);
+
         /**
-         * Receive the current URL if the activity was changed. Does nothing
-         * if there was no previous activity, i.e. we have not yet changed activity.
+         * Check if incognito is enabled before we enable the view layout.
          */
         Bundle bundle = getIntent().getExtras();
-        if (bundle != null) {
-            currentURL = bundle.getString("currentURL");
-            isIncognito = bundle.getBoolean("getIncognito");
-        }
+        if (bundle != null) { isIncognito = bundle.getBoolean("getIncognito");}
 
+        /**
+         * When incognito is enabled this is shown on the app's title. The titlebar is hidden
+         * if incognito is disabled.
+         */
         if (isIncognito == true) {
             this.setTitle("Incognito mode");
         } else {
@@ -88,37 +104,40 @@ public class MainActivity extends Activity {
         /**
          * Popup menu. Should probably be changed to an options menu?
          */
-        final Button popupButton = (Button)findViewById(R.id.set_button);
-        popupButton.setOnClickListener(new View.OnClickListener(){
+        final Button popupButton = (Button) findViewById(R.id.set_button);
+        popupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                PopupMenu popupMenu = new PopupMenu(getApplicationContext(),view);
+                PopupMenu popupMenu = new PopupMenu(getApplicationContext(), view);
 
                 popupMenu.inflate(R.menu.popup_menu);
                 popupMenu.show();
 
                 //popupButton.setBackground(getResources().getDrawable(R.mipmap.settingsclicked));
 
-                popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener(){
+                popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
-                        if (item.getItemId()==R.id.one) {
+                        if (item.getItemId() == R.id.one) {
                             // just showing a "Created new tab" text
-                            Toast.makeText(getApplicationContext(),"Created new tab",Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(),
+                                    "Created new tab", Toast.LENGTH_SHORT).show();
 
                             return true;
                         }
-                        if (item.getItemId()==R.id.two) {
+                        if (item.getItemId() == R.id.two) {
 
                             // swapping layout with changeActivity method
-                            Toast.makeText(getApplicationContext(),"Changed layout",Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(),
+                                    "Changed layout", Toast.LENGTH_SHORT).show();
                             changeActivity();
                         }
-                        if (item.getItemId()==R.id.three) {
+                        if (item.getItemId() == R.id.three) {
                             // saves the current URL into the bookmark database
-                            Toast.makeText(getApplicationContext(),"Added bookmark",Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(),
+                                    "Added bookmark", Toast.LENGTH_SHORT).show();
 
-                            byte [] favicon;
+                            byte[] favicon;
                             favicon = BitmapUtility.getBytes(mWebView.getFavicon());
                             if (favicon == null) {
                                 System.out.println("no favicon found");
@@ -126,18 +145,18 @@ public class MainActivity extends Activity {
 
                             addEntry(mWebView.getTitle(), mWebView.getUrl(), favicon);
                         }
-                        if (item.getItemId()==R.id.four) {
+                        if (item.getItemId() == R.id.four) {
                             // Show the bookmark view
-                            Intent startBookmarkActivity = new Intent(MainActivity.this, BookmarkActivity.class);
+                            Intent startBookmarkActivity = new Intent(MainActivity.this,
+                                    BookmarkActivity.class);
                             startActivityForResult(startBookmarkActivity, 1);
 
                         }
-
                         /**
-                         * Enable or disable incognito mode
+                         * Enable or disable incognito mode.
                          */
-                        if (item.getItemId()==R.id.five) {
-                            System.out.println("Incognito is now: " + isIncognito);
+                        if (item.getItemId() == R.id.five) {
+                            System.out.println("Incognito was: " + isIncognito);
                             if (isIncognito == false) {
                                 isIncognito = true;
                                 Intent intent = getIntent();
@@ -145,16 +164,29 @@ public class MainActivity extends Activity {
                                 intent.putExtra("currentURL", defaultURL);
                                 finish();
                                 startActivity(intent);
-                                System.out.println("Incognito is now enabled");
-                            }
-                            else if (isIncognito == true) {
+                                System.out.println("Incognito is now enabled.");
+                            } else if (isIncognito == true) {
                                 isIncognito = false;
                                 Intent intent = getIntent();
                                 intent.putExtra("getIncognito", isIncognito);
                                 intent.putExtra("currentURL", defaultURL);
                                 finish();
                                 startActivity(intent);
-                                System.out.println("Incognito is no disabled");
+                                System.out.println("Incognito is no disabled.");
+                            }
+                        }
+                        if (item.getItemId() == R.id.six) {
+                            System.out.println("Adblock was: " + AdblockEnabled);
+                            if (isAdblockEnabled()) {
+                                saveAdblockStatus(false);
+                                saveTempUrl(mWebView.getUrl().toString());
+                                MainActivity.this.recreate();
+                                System.out.println("Adblock has been disabled.");
+                            } else if (!isAdblockEnabled()) {
+                                saveAdblockStatus(true);
+                                saveTempUrl(mWebView.getUrl().toString());
+                                MainActivity.this.recreate();
+                                System.out.println("Adblock has been enabled.");
                             }
                         }
                         return false;
@@ -165,7 +197,7 @@ public class MainActivity extends Activity {
 
         Log.i(TAG, "onCreate");
         mWebView = (WebView) findViewById(R.id.webview);
-        mWebView.getSettings().setJavaScriptEnabled(true); //XSS issues must be resolved, eventually...
+        mWebView.getSettings().setJavaScriptEnabled(true); //Enable javascript
         mWebView.getSettings().setBuiltInZoomControls(true); // enable zoom
         mWebView.getSettings().setDisplayZoomControls(false); // remove on-display zoom controls
         mWebView.getSettings().setDomStorageEnabled(true);
@@ -177,7 +209,6 @@ public class MainActivity extends Activity {
         mWebView.getSettings().setLoadWithOverviewMode(true); // fix scaling on some pages
 
         progress = (ProgressBar) findViewById(R.id.progressBar);
-
 
         /**
          * Incognito/private browsing mode.
@@ -215,11 +246,13 @@ public class MainActivity extends Activity {
                     String URL = addWebsite_text.getText().toString();
 
                     // Checking if the URL is valid or not
-                    boolean isURL = Patterns.WEB_URL.matcher(addWebsite_text.getText().toString()).matches();
+                    boolean isURL = Patterns.WEB_URL.matcher(addWebsite_text.getText()
+                            .toString()).matches();
+
+                    String handledURL = "";
 
                     // If the URL is valid, we open the webpage
                     if (isURL) {
-
                         // Checking if the URL starts with https or http. If not then we
                         // add it at the start of the URL string. This is a fix for some pages
                         // requiring the http or https tag at the start.
@@ -233,7 +266,7 @@ public class MainActivity extends Activity {
                     }
                     // If the URL is not valid, we do a google search for the string
                     else if (!isURL) {
-                        handledURL = "https://www.google.com/search?q="+URL;
+                        handledURL = "https://www.google.com/search?q=" + URL;
                     }
 
                     addWebsite_text.setText(handledURL);
@@ -256,12 +289,12 @@ public class MainActivity extends Activity {
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus) {
                     addWebsite_text.selectAll();
-                    addWebsite_text.setPadding(20,0,70,0);
+                    addWebsite_text.setPadding(20, 0, 70, 0);
                     ib.setVisibility(View.VISIBLE);
                     InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                     imm.showSoftInput(addWebsite_text, InputMethodManager.SHOW_IMPLICIT);
                 } else {
-                    addWebsite_text.setPadding(20,0,20,0);
+                    addWebsite_text.setPadding(20, 0, 20, 0);
                     addWebsite_text.setText(mWebView.getUrl());
                     ib.setVisibility(View.INVISIBLE);
                     InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -283,31 +316,51 @@ public class MainActivity extends Activity {
         });
 
 
+
         /**
          * If there is no saved instance state, then load the default webpage(webURL)
          * This is needed because without it, the app will reload to the default webpage
          * every time the phone is tilted.
          */
-        if (savedInstanceState == null)
-        {
-            if (currentURL == null) {
-                mWebView.loadUrl(defaultURL);
-            } else
+        if (savedInstanceState == null) {
+            if (currentURL != null) {
                 mWebView.loadUrl(currentURL);
+            } else
+                mWebView.loadUrl(defaultURL);
         }
-
-
     }
 
     // Insert into bookmark database. Requires a title, an url and a bitmap image
-    public void addEntry( String title, String url, byte[] favicon) throws SQLiteException{
+    public final void addEntry(String title, String url, byte[] favicon) throws SQLiteException {
         bDbHelper = new BookmarkDbHelper(MainActivity.this);
         SQLiteDatabase db = bDbHelper.getWritableDatabase();
-        ContentValues cv = new  ContentValues();
-        cv.put(BookmarkDbHelper.COLUMN_NAME_TITLE,     title);
-        cv.put(BookmarkDbHelper.COLUMN_NAME_URL,       url);
-        cv.put(BookmarkDbHelper.COLUMN_NAME_FAVICON,   favicon);
-        db.insert(BookmarkDbHelper.TABLE_NAME, null, cv );
+        ContentValues cv = new ContentValues();
+        cv.put(BookmarkDbHelper.COLUMN_NAME_TITLE, title);
+        cv.put(BookmarkDbHelper.COLUMN_NAME_URL, url);
+        cv.put(BookmarkDbHelper.COLUMN_NAME_FAVICON, favicon);
+        db.insert(BookmarkDbHelper.TABLE_NAME, null, cv);
+    }
+
+    /**
+     * Method to add current adblock status (enabled/disabled) to the user settings.
+     */
+    public void saveAdblockStatus(boolean adblockstatus) {
+        SharedPreferences.Editor editor = getSharedPreferences(IS_ADBLOCK_ENABLED, MODE_PRIVATE).edit();
+        editor.putBoolean("adblockstatus", adblockstatus);
+        editor.apply();
+    }
+
+    /**
+     * Adds a temporary url to the user settings.
+     */
+    public void saveTempUrl(String tempurl) {
+        SharedPreferences.Editor editor = getSharedPreferences(IS_ADBLOCK_ENABLED, MODE_PRIVATE).edit();
+        editor.putString("tempurl", tempurl);
+        editor.apply();
+    }
+
+    public boolean isAdblockEnabled() {
+        return AdblockEnabled;
     }
 
     /**
@@ -339,10 +392,10 @@ public class MainActivity extends Activity {
 
         }
     }
+
     public void setValue(int progress) {
         this.progress.setProgress(progress);
     }
-
 
     /**
      * Switches layout. Puts the URL-bar on the bottom. Starts a new activity.
@@ -358,8 +411,8 @@ public class MainActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         if (requestCode == 1) {
-            if(resultCode == Activity.RESULT_OK){
-                String result=data.getStringExtra("currentURL");
+            if (resultCode == Activity.RESULT_OK) {
+                String result = data.getStringExtra("currentURL");
                 mWebView.loadUrl(result);
             }
             if (resultCode == Activity.RESULT_CANCELED) {
@@ -368,11 +421,13 @@ public class MainActivity extends Activity {
         }
     }//onActivityResult
 
+
     /**
      * Makes the application handle the web call for itself, instead of the default app
      * being called
      */
-    private class ThisWebViewClient extends WebViewClient {
+    public class ThisWebViewClient extends WebViewClient {
+
         @Override
         public boolean shouldOverrideUrlLoading(WebView webview, String url) {
             webview.loadUrl(url);
@@ -383,8 +438,7 @@ public class MainActivity extends Activity {
          * For some reason links on Google-search won't open without this
          */
         @Override
-        public void onPageFinished(WebView view, String url)
-        {
+        public void onPageFinished(WebView view, String url) {
             System.out.println("onPageFinished: " + url);
             if ("about:blank".equals(url) && view.getTag() != null)
                 view.loadUrl(view.getTag().toString());
@@ -392,29 +446,35 @@ public class MainActivity extends Activity {
                 view.setTag(url);
         }
 
-        // Caching the checked urls
-        private Map<String, Boolean> loadedUrls = new HashMap<>();
+        // Adblocker
+
+        private Map<String, Boolean> loadedUrls = new HashMap<>();   // Caching the checked urls
 
         /**
          * Check if the urls that are being requested to load are ads. If they are ads we
-         * remove hide them and try to create an empty HTML container to replace them.
+         * hide them and try to create an empty HTML container to replace them.
          *
-         * The urls that have already been checked are cached so we
-         * won't spend time and resources checking them again.
+         * The urls that have already been checked are cached so we won't spend time
+         * and resources checking them again.
          */
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
             boolean ad;
-            if (!loadedUrls.containsKey(url)) {
-                ad = AdBlocker.isAd(url);
-                loadedUrls.put(url, ad);
-            } else {
-                ad = loadedUrls.get(url);
+            if (isAdblockEnabled()) {
+                if (!loadedUrls.containsKey(url)) {
+                    ad = AdBlocker.isAd(url);
+                    loadedUrls.put(url, ad);
+                } else {
+                    ad = loadedUrls.get(url);
+                }
+                return ad ? AdBlocker.createEmptyResource() : super.shouldInterceptRequest(view, url);
             }
-            return ad ? AdBlocker.createEmptyResource() : super.shouldInterceptRequest(view, url);
+            return null;
         }
 
     }
+
+
 
     public boolean isIncognito() {
         return isIncognito;
@@ -422,54 +482,50 @@ public class MainActivity extends Activity {
 
     // Enables the browser to return
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event)
-    {
-        if ((keyCode == KeyEvent.KEYCODE_BACK) && mWebView.canGoBack())
-        {
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if ((keyCode == KeyEvent.KEYCODE_BACK) && mWebView.canGoBack()) {
             mWebView.goBack();
+            return true;
+        } else if ((keyCode == KeyEvent.KEYCODE_BACK) && mWebView.canGoBack()==false) {
+            currentURL = defaultURL;
+            finish();
             return true;
         }
         return super.onKeyDown(keyCode, event);
     }
 
     @Override
-    protected void onStart()
-    {
+    protected void onStart() {
         super.onStart();
         Log.i(TAG, "onStart");
     }
 
     @Override
-    protected void onRestart()
-    {
+    protected void onRestart() {
         super.onRestart();
         Log.i(TAG, "onRestart");
     }
 
     @Override
-    protected void onPause()
-    {
+    protected void onPause() {
         super.onPause();
         Log.i(TAG, "onPause");
     }
 
     @Override
-    protected void onResume()
-    {
+    protected void onResume() {
         super.onResume();
         Log.i(TAG, "onResume");
     }
 
     @Override
-    protected void onDestroy()
-    {
+    protected void onDestroy() {
         super.onDestroy();
         Log.i(TAG, "onDestroy");
     }
 
     @Override
-    protected void onStop()
-    {
+    protected void onStop() {
         super.onStop();
         Log.i(TAG, "onStop");
     }
@@ -477,8 +533,7 @@ public class MainActivity extends Activity {
     // Call before activity is destroyed
     // Get info about activity before user starts it again
     @Override
-    protected void onSaveInstanceState(Bundle outState)
-    {
+    protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         // Save state, to let us flip and stuff
         mWebView.saveState(outState);
@@ -486,12 +541,13 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState)
-    {
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         // Restore the state saved in the method above
         mWebView.restoreState(savedInstanceState);
         Log.i(TAG, "onRestoreInstanceState");
     }
+
+
 
 }

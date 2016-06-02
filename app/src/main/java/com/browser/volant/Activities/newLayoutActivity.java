@@ -26,7 +26,7 @@ import android.widget.Toast;
 
 import com.browser.volant.BitmapUtility;
 import com.browser.volant.Database.BookmarkDbHelper;
-import com.example.erlend.nettleser.R;
+import com.browser.volant.R;
 
 /**
  * Created by zteff1 on 5/4/2016.

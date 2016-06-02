@@ -23,5 +23,9 @@
         android:id="@+id/five"
         android:title="Incognito enable/disable"
         />
+    <item
+        android:id="@+id/six"
+        android:title="AdBlock enable/disable"
+        />
 
 </menu>

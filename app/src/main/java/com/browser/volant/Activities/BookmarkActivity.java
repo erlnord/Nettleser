@@ -14,7 +14,7 @@ import android.widget.SimpleCursorAdapter;
 
 import com.browser.volant.Database.BookmarkDbAdapter;
 import com.browser.volant.Database.BookmarkDbHelper;
-import com.example.erlend.nettleser.R;
+import com.browser.volant.R;
 
 public class BookmarkActivity extends Activity {
 
