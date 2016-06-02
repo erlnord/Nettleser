@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.NoTitleBar">
         <activity
-            android:name=".MainActivity"
+            android:name=".Activities.MainActivity"
             android:label="@string/app_name"
             android:theme="@android:style/Theme">
             <intent-filter>
@@ -22,14 +22,14 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".newMainActivity"
+            android:name=".Activities.newMainActivity"
             android:label="@string/app_name"
             android:theme="@android:style/Theme.NoTitleBar">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
             </intent-filter>
         </activity>
-        <activity android:name=".Bookmarks.BookmarkActivity"></activity>
+        <activity android:name=".Activities.BookmarkActivity"></activity>
     </application>
 
 </manifest>

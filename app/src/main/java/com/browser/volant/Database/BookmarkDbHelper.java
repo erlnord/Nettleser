@@ -1,10 +1,8 @@
-package com.example.erlend.nettleser.Bookmarks;
+package com.browser.volant.Database;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.provider.BaseColumns;
 
 /**
  * This class contains creation of a database containing bookmarks

@@ -1,4 +1,4 @@
-package com.example.erlend.nettleser;
+package com.browser.volant.Activities;
 
 import android.app.Activity;
 import android.content.ContentValues;
@@ -32,8 +32,10 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.erlend.nettleser.Bookmarks.BookmarkActivity;
-import com.example.erlend.nettleser.Bookmarks.BookmarkDbHelper;
+import com.browser.volant.AdBlocker;
+import com.browser.volant.BitmapUtility;
+import com.browser.volant.Database.BookmarkDbHelper;
+import com.example.erlend.nettleser.R;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -53,6 +55,8 @@ public class MainActivity extends Activity {
 
     // Variable to determine if incognito is enabled.
     private boolean isIncognito = false;
+
+    final String defaultURL = "http://www.google.com";
 
 
     @Override
@@ -81,10 +85,6 @@ public class MainActivity extends Activity {
         // Allow app to recieve favicons from urls
         WebIconDatabase.getInstance().open(getDir("icons", MODE_PRIVATE).getPath());
 
-
-
-        final String defaultURL = "http://www.google.com";
-
         /**
          * Popup menu. Should probably be changed to an options menu?
          */
@@ -97,7 +97,7 @@ public class MainActivity extends Activity {
                 popupMenu.inflate(R.menu.popup_menu);
                 popupMenu.show();
 
-                popupButton.setBackground(getResources().getDrawable(R.mipmap.settingsclicked));
+                //popupButton.setBackground(getResources().getDrawable(R.mipmap.settingsclicked));
 
                 popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener(){
                     @Override
@@ -119,7 +119,7 @@ public class MainActivity extends Activity {
                             Toast.makeText(getApplicationContext(),"Added bookmark",Toast.LENGTH_SHORT).show();
 
                             byte [] favicon;
-                            favicon = DbBitmapUtility.getBytes(mWebView.getFavicon());
+                            favicon = BitmapUtility.getBytes(mWebView.getFavicon());
                             if (favicon == null) {
                                 System.out.println("no favicon found");
                             }
@@ -348,7 +348,7 @@ public class MainActivity extends Activity {
      * Switches layout. Puts the URL-bar on the bottom. Starts a new activity.
      */
     public void changeActivity() {
-        Intent startNewActivity = new Intent(this, newMainActivity.class);
+        Intent startNewActivity = new Intent(this, newLayoutActivity.class);
         startNewActivity.putExtra("currentURL", mWebView.getUrl().toString());
         startNewActivity.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(startNewActivity);

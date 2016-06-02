@@ -1,4 +1,4 @@
-package com.example.erlend.nettleser;
+package com.browser.volant.Activities;
 
 import android.app.Activity;
 import android.content.ContentValues;
@@ -24,13 +24,14 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.erlend.nettleser.Bookmarks.BookmarkActivity;
-import com.example.erlend.nettleser.Bookmarks.BookmarkDbHelper;
+import com.browser.volant.BitmapUtility;
+import com.browser.volant.Database.BookmarkDbHelper;
+import com.example.erlend.nettleser.R;
 
 /**
  * Created by zteff1 on 5/4/2016.
  */
-public class newMainActivity extends Activity {
+public class newLayoutActivity extends Activity {
     private static final String TAG = "Stringtest";
     private WebView mWebView;
     private EditText addWebsite_text;
@@ -81,7 +82,7 @@ public class newMainActivity extends Activity {
                         if (item.getItemId()==R.id.three){
                             Toast.makeText(getApplicationContext(),"Added bookmark",Toast.LENGTH_SHORT).show();
                             byte [] favicon;
-                            favicon = DbBitmapUtility.getBytes(mWebView.getFavicon());
+                            favicon = BitmapUtility.getBytes(mWebView.getFavicon());
 
                             if (favicon == null) {
                                 System.out.println("no favicon found");
@@ -92,7 +93,7 @@ public class newMainActivity extends Activity {
                         }
                         if (item.getItemId()==R.id.four) {
                             // つ ◕_◕ ༽つ ALLIANCE TAKE MY ENERGY つ ◕_◕ ༽つ
-                            Intent startBookmarkActivity = new Intent(newMainActivity.this, BookmarkActivity.class);
+                            Intent startBookmarkActivity = new Intent(newLayoutActivity.this, BookmarkActivity.class);
                             startActivityForResult(startBookmarkActivity, 1);
                             //startBookmarkActivity.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             //startActivity(startBookmarkActivity);
@@ -147,7 +148,7 @@ public class newMainActivity extends Activity {
                     mWebView.loadUrl(handledURL);
                     mWebView.requestFocus();
 
-                    newMainActivity.this.progress.setProgress(0);
+                    newLayoutActivity.this.progress.setProgress(0);
                 }
                 return handled;
             }
@@ -221,7 +222,7 @@ public class newMainActivity extends Activity {
 
     // Insert into bookmark database
     public void addEntry( String title, String url, byte[] favicon) throws SQLiteException {
-        bDbHelper = new BookmarkDbHelper(newMainActivity.this);
+        bDbHelper = new BookmarkDbHelper(newLayoutActivity.this);
         SQLiteDatabase db = bDbHelper.getWritableDatabase();
         ContentValues cv = new  ContentValues();
         cv.put(BookmarkDbHelper.COLUMN_NAME_TITLE,     title);
@@ -238,7 +239,7 @@ public class newMainActivity extends Activity {
     public class MyWebChromeClient extends WebChromeClient {
         @Override
         public void onProgressChanged(WebView view, int newProgress) {
-            newMainActivity.this.setValue(newProgress);
+            newLayoutActivity.this.setValue(newProgress);
             super.onProgressChanged(view, newProgress);
             if (progress.getProgress() < 100) {
                 progress.setVisibility(View.VISIBLE);

@@ -1,11 +1,11 @@
-package com.example.erlend.nettleser.Bookmarks;
+package com.browser.volant.Database;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 
-import com.example.erlend.nettleser.DbBitmapUtility;
+import com.browser.volant.BitmapUtility;
 
 import java.util.ArrayList;
 
@@ -54,7 +54,7 @@ public class BookmarkDbAdapter {
         if (c!=null) {
             while (c.moveToNext()) {
                 byte[] bitBytes = c.getBlob(c.getColumnIndex(BookmarkDbHelper.COLUMN_NAME_FAVICON));
-                bitmap = DbBitmapUtility.getImage(bitBytes);
+                bitmap = BitmapUtility.getImage(bitBytes);
                 bitList.add(bitmap);
             }
         }

@@ -1,4 +1,4 @@
-package com.example.erlend.nettleser;
+package com.browser.volant;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -10,7 +10,7 @@ import java.io.ByteArrayOutputStream;
  * a byte array to allow for storage in a database.
  * Created by larsmartin on 12/05/16.
  */
-public class DbBitmapUtility {
+public class BitmapUtility {
 
     // convert from bitmap to byte array
     public static byte[] getBytes(Bitmap bitmap) {

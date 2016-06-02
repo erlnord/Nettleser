@@ -1,4 +1,4 @@
-package com.example.erlend.nettleser;
+package com.browser.volant;
 
 import android.content.Context;
 import android.os.AsyncTask;

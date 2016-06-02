@@ -1,4 +1,4 @@
-package com.example.erlend.nettleser.Bookmarks;
+package com.browser.volant.Activities;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -12,6 +12,8 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 
+import com.browser.volant.Database.BookmarkDbAdapter;
+import com.browser.volant.Database.BookmarkDbHelper;
 import com.example.erlend.nettleser.R;
 
 public class BookmarkActivity extends Activity {
@@ -55,7 +57,7 @@ public class BookmarkActivity extends Activity {
 
                 byte[] bitBytes = c.getBlob(c.getColumnIndex(BookmarkDbHelper.COLUMN_NAME_FAVICON));
                 System.out.println(Arrays.toString(bitBytes));
-                bitmap = DbBitmapUtility.getImage(bitBytes);
+                bitmap = BitmapUtility.getImage(bitBytes);
                 bitList.add(bitmap);
                 System.out.println("ADDED BITMAP");
             }
