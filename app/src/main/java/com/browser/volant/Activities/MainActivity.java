@@ -1,7 +1,6 @@
 package com.browser.volant.Activities;
 
 import android.app.Activity;
-import android.app.SharedElementCallback;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -11,6 +10,7 @@ import android.database.sqlite.SQLiteException;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.KeyEvent;
@@ -38,9 +38,6 @@ import com.browser.volant.AdBlocker;
 import com.browser.volant.BitmapUtility;
 import com.browser.volant.Database.BookmarkDbHelper;
 import com.browser.volant.R;
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.common.api.GoogleApiClient;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -163,6 +160,7 @@ public class MainActivity extends Activity {
                                 intent.putExtra("getIncognito", isIncognito);
                                 intent.putExtra("currentURL", defaultURL);
                                 finish();
+                                // starts a new activity so all history is purged
                                 startActivity(intent);
                                 System.out.println("Incognito is now enabled.");
                             } else if (isIncognito == true) {
@@ -171,6 +169,7 @@ public class MainActivity extends Activity {
                                 intent.putExtra("getIncognito", isIncognito);
                                 intent.putExtra("currentURL", defaultURL);
                                 finish();
+                                // starts a new activity so all history is purged
                                 startActivity(intent);
                                 System.out.println("Incognito is no disabled.");
                             }
@@ -180,11 +179,15 @@ public class MainActivity extends Activity {
                             if (isAdblockEnabled()) {
                                 saveAdblockStatus(false);
                                 saveTempUrl(mWebView.getUrl().toString());
+                                Toast.makeText(getApplicationContext(),
+                                        "Disabled adblock.", Toast.LENGTH_SHORT).show();
                                 MainActivity.this.recreate();
                                 System.out.println("Adblock has been disabled.");
                             } else if (!isAdblockEnabled()) {
                                 saveAdblockStatus(true);
                                 saveTempUrl(mWebView.getUrl().toString());
+                                Toast.makeText(getApplicationContext(),
+                                        "Enabled adblock.", Toast.LENGTH_SHORT).show();
                                 MainActivity.this.recreate();
                                 System.out.println("Adblock has been enabled.");
                             }
@@ -253,16 +256,8 @@ public class MainActivity extends Activity {
 
                     // If the URL is valid, we open the webpage
                     if (isURL) {
-                        // Checking if the URL starts with https or http. If not then we
-                        // add it at the start of the URL string. This is a fix for some pages
-                        // requiring the http or https tag at the start.
-                        if (URL.startsWith("https://")) {
-                            handledURL = URL;
-                        } else if (URL.startsWith("http://")) {
-                            handledURL = URL;
-                        } else {
-                            handledURL = "http://" + URL;
-                        }
+                        // Make sure that a https or http tag exists at the start of the url
+                        handledURL = URLHandler(URL);
                     }
                     // If the URL is not valid, we do a google search for the string
                     else if (!isURL) {
@@ -281,25 +276,26 @@ public class MainActivity extends Activity {
 
         /**
          * Show and hide the cancel button on URL-bar focus.
-         * Also explicitly summons and dismisses the keyboard.
+         * Also implicitly summons and dismisses the keyboard.
          */
         ib = (ImageButton) findViewById(R.id.imageButton);
         addWebsite_text.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus) {
-                    addWebsite_text.selectAll();
-                    addWebsite_text.setPadding(20, 0, 70, 0);
-                    ib.setVisibility(View.VISIBLE);
-                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.showSoftInput(addWebsite_text, InputMethodManager.SHOW_IMPLICIT);
-                } else {
-                    addWebsite_text.setPadding(20, 0, 20, 0);
-                    addWebsite_text.setText(mWebView.getUrl());
-                    ib.setVisibility(View.INVISIBLE);
-                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(addWebsite_text.getWindowToken(), 0);
-                }
+            if (hasFocus) {
+                addWebsite_text.selectAll();
+
+                addWebsite_text.setPadding(dpToPx(10), 0, dpToPx(35), 0);
+                ib.setVisibility(View.VISIBLE);
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.showSoftInput(addWebsite_text, InputMethodManager.SHOW_IMPLICIT);
+            } else {
+                addWebsite_text.setPadding(dpToPx(10), 0, dpToPx(10), 0);
+                addWebsite_text.setText(mWebView.getUrl());
+                ib.setVisibility(View.INVISIBLE);
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(addWebsite_text.getWindowToken(), 0);
+            }
             }
         });
 
@@ -315,8 +311,6 @@ public class MainActivity extends Activity {
             }
         });
 
-
-
         /**
          * If there is no saved instance state, then load the default webpage(webURL)
          * This is needed because without it, the app will reload to the default webpage
@@ -327,6 +321,31 @@ public class MainActivity extends Activity {
                 mWebView.loadUrl(currentURL);
             } else
                 mWebView.loadUrl(defaultURL);
+        }
+    }
+
+    /**
+     * Convert display-independant pixels to pixels. This is used for display-independant
+     * scaling of sizes.
+     */
+    public int dpToPx(int dp) {
+        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+        int px = Math.round(dp * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));
+        return px;
+    }
+
+    /**
+     * Checking if the URL starts with https or http. If it does not, we add it at the start
+     * of the URL string. This is a fix for some pages requiring the http or https tag
+     * at the start of the url.
+     */
+    public String URLHandler(String URL) {
+        if (URL.startsWith("https://")) {
+            return URL;
+        } else if (URL.startsWith("http://")) {
+            return URL;
+        } else {
+            return "http://" + URL;
         }
     }
 
@@ -446,6 +465,7 @@ public class MainActivity extends Activity {
                 view.setTag(url);
         }
 
+
         // Adblocker
 
         private Map<String, Boolean> loadedUrls = new HashMap<>();   // Caching the checked urls
@@ -473,8 +493,6 @@ public class MainActivity extends Activity {
         }
 
     }
-
-
 
     public boolean isIncognito() {
         return isIncognito;

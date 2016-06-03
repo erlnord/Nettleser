@@ -1,4 +1,5 @@
 # Hosts file pulled from: http://hosts-file.net/ad_servers.txt May 29. 2016
+# The adblock will block all content orginating from these ad providers
 
 005.free-counter.co.uk
 006.free-adult-counters.x-xtra.com

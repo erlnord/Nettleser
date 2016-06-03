@@ -36,37 +36,6 @@ public class BookmarkActivity extends Activity {
 
         populateListView();
     }
-    /*
-
-    public ArrayList<Bitmap> getAllImages() {
-        BookmarkDbHelper bDbHelper = new BookmarkDbHelper(this);
-        ArrayList<Bitmap> bitList = new ArrayList<Bitmap>();
-
-        Bitmap bitmap;
-
-        SQLiteDatabase db = bDbHelper.getWritableDatabase();
-        db.beginTransaction();
-        String selectQuery = " SELECT * FROM " + BookmarkDbHelper.TABLE_NAME;
-        Cursor c = db.rawQuery(selectQuery,null);
-
-        if (c != null) {
-
-            c.moveToFirst();
-
-            while (c.moveToNext()) {
-
-                byte[] bitBytes = c.getBlob(c.getColumnIndex(BookmarkDbHelper.COLUMN_NAME_FAVICON));
-                System.out.println(Arrays.toString(bitBytes));
-                bitmap = BitmapUtility.getImage(bitBytes);
-                bitList.add(bitmap);
-                System.out.println("ADDED BITMAP");
-            }
-        }
-        else {
-            System.out.println("Cursor is empty.");
-        }
-        return bitList;
-    }*/
 
     /**
      * This class populates the bookmarks view with the bookmarks that have been

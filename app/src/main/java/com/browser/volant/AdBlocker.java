@@ -44,7 +44,12 @@ public class AdBlocker {
 
     public static boolean isAd(String url) {
         HttpUrl httpUrl = HttpUrl.parse(url);
-        return isAdHost(httpUrl != null ? httpUrl.host() : "");
+        if (isAdHost((httpUrl != null) ? httpUrl.host() : "")) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     public static WebResourceResponse createEmptyResource() {
