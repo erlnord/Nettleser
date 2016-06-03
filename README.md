@@ -9,4 +9,4 @@ Målet med dette prosjektet er å lage en sikker og brukervennlig nettleser til 
 * Tabs
 
 #### License
-Prosjektet er underlagt [MIT Lisensen](https://github.com/erlnord/Nettleser/blob/develop/LICENSE)
+The Software is licensed under the [GNU GENERAL PUBLIC LICENSE] (https://github.com/erlnord/Nettleser/blob/develop/LICENSE)
