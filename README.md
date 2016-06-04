@@ -1,12 +1,34 @@
-# **Volant/FREEDOM/Invincible/TOS/Kamo** by Team OS
-Det her er en nettleser. Snart iallefall. 
+# **Volant** by Team OS
 
-Målet med dette prosjektet er å lage en sikker og brukervennlig nettleser til Android. Prosjektet har fokus på personvern og sikkerhet.
+Volant is a web browser application, made for Android. It centers on giving the user the possibilities to customize the browser based on their needs. Focusing on speed, customization, anonymity, content-blocking aka. adblock and more. We believe that in this way we can create the best possible browsing experience.
 
-#### Features
+The current release should be considered an early alpha model. 
+
+### Implemented features
+* Adblock
+* In-Private Browsing aka. Incognito
+* Bookmarks
+* Ability to change layout, i.e. move the url-bar to bottom
+
+### Not yet implemented features
+* Tabs and tab-management
+* Private browsing in the form of VPN/proxy routing
+* Display browser history
+* Fullscreen video support
 * Reverse image search
-* Bokmerker
-* Tabs
 
 #### License
-The Software is licensed under the [GNU GENERAL PUBLIC LICENSE] (https://github.com/erlnord/Nettleser/blob/develop/LICENSE)
+The software is licensed under the [GNU General Public License] (https://github.com/erlnord/Nettleser/blob/develop/LICENSE)
+````
+Copyright 2016 Team OS
+
+Volant
+
+   This Source Code Form is subject to the terms of the 
+   GNU General Public License, v. 3.0. If a copy of the GNU GPL 
+   was not distributed with this file, You can obtain one at 
+   
+   http://www.gnu.org/licenses/gpl-3.0.html
+````
+This means that you may copy, distribute and modify the software as long as you track changes/dates in source files. Any modifications to or software including (via compiler) GPL-licensed code must also be made available under the GPL along with build & install instructions.
+

@@ -29,7 +29,12 @@ import com.browser.volant.Database.BookmarkDbHelper;
 import com.browser.volant.R;
 
 /**
- * Created by zteff1 on 5/4/2016.
+ * This activity is a copy of the MainActivity for supporting a different layout.
+ * This class is meant as a placeholder until we can find a way to programatically change the
+ * layout without needing duplicate code.
+ *
+ * This class is only updated to support bookmarks and has not been updated since to support
+ * adblocking, context menu etc.
  */
 public class newLayoutActivity extends Activity {
     private static final String TAG = "Stringtest";
@@ -66,7 +71,6 @@ public class newLayoutActivity extends Activity {
                 popupMenu.inflate(R.menu.popup_menu);
                 popupMenu.show();
 
-                popupButton.setBackground(getResources().getDrawable(R.mipmap.settingsclicked));
                 popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener(){
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
@@ -95,8 +99,6 @@ public class newLayoutActivity extends Activity {
                             // つ ◕_◕ ༽つ ALLIANCE TAKE MY ENERGY つ ◕_◕ ༽つ
                             Intent startBookmarkActivity = new Intent(newLayoutActivity.this, BookmarkActivity.class);
                             startActivityForResult(startBookmarkActivity, 1);
-                            //startBookmarkActivity.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            //startActivity(startBookmarkActivity);
                         }
                         return false;
                     }

@@ -16,6 +16,10 @@ import com.browser.volant.Database.BookmarkDbAdapter;
 import com.browser.volant.Database.BookmarkDbHelper;
 import com.browser.volant.R;
 
+/**
+ * This activity shows the user it's saved bookmarks. The user can select a bookmark and
+ * the browser will open the link.
+ */
 public class BookmarkActivity extends Activity {
 
     private static final String TAG = "Bookmark tag";

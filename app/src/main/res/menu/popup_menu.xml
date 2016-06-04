@@ -25,7 +25,7 @@
         />
     <item
         android:id="@+id/six"
-        android:title="AdBlock enable/disable"
+        android:title="Adblock enable/disable"
         />
 
 </menu>
